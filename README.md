@@ -13,7 +13,7 @@ $ python manage.py runserver
 
 **Launch *http://localhost:8000* in the browser**
 
-Login with 'testuser' and 'testpass'
+Login with 'akshay' and 'akshaypass'
 
 **In case you are unable to login**
 
