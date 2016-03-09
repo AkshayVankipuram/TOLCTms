@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+{% load staticfiles %}
+<style>
+    .ralign {
+        float: right;
+    }
+
+    .desc {
+        max-height: 45vh;
+        overflow-y: auto;
+    }
+
+    #back {
+        cursor: pointer;
+        transition: transform .3s ease;
+        -webkit-transition: -webkit-transform .3s ease;
+    }
+
+    #back:hover {
+        transform: scale(.9);
+        -webkit-transform: scale(.9);
+    }
+
+</style>
+<div class="container">
+    <div class="row">
+        <div class="col-md-3">
+            <ul class="list-group">
+                <li class="list-group-item list-group-item-info">Your Skills</li>
+                {% for skill in yskills %}
+                <li class="list-group-item">{{skill}}</li>
+                {% endfor %}
+            </ul>
+            <div class="panel panel-info">
+                <div class="panel-heading">{{ name }}</div>
+                <div class="panel-heading">{{ task.title }}</div>
+                <div class="panel-body">
+                    <p class="desc">{{task.description}}</p>
+                    <h5><code>Start Date: {{task.start}}</code></h5>
+                    <h5><code>End Date: {{task.end}}</code></h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="panel panel-info">
+                <div class="panel-heading">Postings</div>
+                <div class="panel-heading"><span id="back"><i class="fa fa-chevron-left"></i>&nbsp;<span class="inner">{{ name }}</span></span></div>
+                <div class="panel-body">
+                    <div id="chartcontainer">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{% static 'js/d3.min.js' %}"></script>
+<script type="text/javascript">
+    var course_name = "{{ name }}";
+</script>
+<style>
+    text {
+        font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    }
+</style>
+<script src="{% static 'js/bulletin.js' %}"></script>
+{% endblock %}

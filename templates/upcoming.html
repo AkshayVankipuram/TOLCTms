@@ -1,0 +1,12 @@
+{% load staticfiles %}
+<div class="container">
+    <ul class="list-group">
+        <li class="list-group-item">
+            <h5>Upcoming tasks and deadlines: <span id="streamer" class="text-warning"></span></h5>
+        </li>
+    </ul>
+</div>
+<script>
+    var stream_data = {{ tasksForWeek | safe }};
+</script>
+<script src="{% static 'js/streamer.js' %}"></script>

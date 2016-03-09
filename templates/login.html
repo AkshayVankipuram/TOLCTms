@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% load staticfiles %}
+<style>
+    form {
+        width: 40%;
+        margin: 0 auto;
+        text-align: center;
+    }
+</style>
+<div class="container">
+    <form role="form" method="POST" action="/login/">
+        {% csrf_token %}
+        <div class="form-group">
+            <input class="form-control" placeholder="Enter User Id" name="username" maxlength="32"/>
+        </div>
+        <div class="form-group">
+            <input class="form-control" type="password" placeholder="Enter Password" name="password" maxlength="24" />
+        </div>
+        <button type="submit" id="submit" class="btn btn-default">Submit</button>
+    </form>
+</div>
+{% endblock %}
