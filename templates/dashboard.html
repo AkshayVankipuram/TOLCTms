@@ -71,10 +71,8 @@
                                             <a class="list-group-item" href="/bulletin/?course={{course}}&title={{task.title}}">Group<i class="fa fa-users ralign"></i></a>
                                             {% elif task.grouped == True and task.completed == False and task.evaluated == False %}
                                             <a class="list-group-item" href="/calendar/">Group<i class="fa fa-calendar ralign"></i></a>
-                                            {% elif task.grouped == True and task.completed == True and task.evaluation = False %}
-                                            <a class="list-group-item list-group-item-danger" href="/feedback/">Group Evaluation<i class="fa fa-comment ralign"></i></a>
                                             {% else %}
-                                            <li class="list-group-item list-group-item-success">Completed</li>
+                                            <a class="list-group-item list-group-item-danger" href="/feedback/">Group Evaluation<i class="fa fa-comment ralign"></i></a>
                                             {% endif %}
                                         </ul>
                                     </div>
