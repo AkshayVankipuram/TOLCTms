@@ -1,18 +1,17 @@
 $(function () {
 
-	var dataroot = null,
-		rootname = "",
+	var root = null,
 		width = $("#chartcontainer").width(),
 		height = screen.availHeight * .7,
+		margin = {top: 20, left: 20, bottom: 20, right: 20},
 		diameter = Math.min(width, height),
-		margin = {top: 10, left: 10, bottom: 10, right: 10},
 		center = [width / 2, height / 2];
+		
+    var svg = d3.select("#chartcontainer").append("svg")
+        .attr("width", width - margin.left - margin.right)
+        .attr("height", height - margin.top - margin.bottom)
+        .append("g");
 	
-	var svg = d3.select("#chartcontainer").append("svg")
-		.attr("width", width)
-		.attr("height", height)
-		.append("g");
-
 	var loadingText = svg.append("text")
 		.style("text-anchor", "middle")
 		.attr("x", center[0])
@@ -21,14 +20,15 @@ $(function () {
 
 	var selected = false;
 
-	d3.json("/chart_data/?course="+course_name, function(err, root) {
+    var group = {};
+
+	d3.json("/chart_data/?course="+course_name, function(err, res) {
 
 		if(err) throw err;
 
-		rootname = root.name;
-		dataroot = root.children;
-
-		update(dataroot);
+        root = res;
+		
+        update(root);
 
 	});
 
@@ -39,11 +39,11 @@ $(function () {
 		d3.select("#chartcontainer").select("svg").remove();
 
 		var svg = d3.select("#chartcontainer").append("svg")
-			.attr("width", width)
-			.attr("height", height)
+            .attr("width", width - margin.left - margin.right)
+            .attr("height", height - margin.top - margin.bottom)
 			.append("g");
 
-		var nodes = classes(dataTransformSkills(node));
+		var nodes = classes(dataTransformSkills(node.children));
 		
 		var force = d3.layout.force()
 			.nodes(nodes)
@@ -56,26 +56,64 @@ $(function () {
 		gnodes.append('circle')
             .attr("r",0)
             .style("fill",function(d) {
-  				return colorvalues.greens[3];
+                if(d.selected) {
+  				    return colorvalues.greens[5];
+                } else {
+  				    return colorvalues.greens[3];
+                }
             })
             .style("opacity",.9)
-            .style("stroke","white")
+            .style("stroke",colorvalues.greens[5])
             .style("stroke-width","1.5px")
             .on('mouseenter', function(d) {
-                d3.select(this).style("fill",colorvalues.greens[7]);
+                d3.select(this)
+                    .transition()
+                    .attr("r", d.r*1.1)
+                    .style("fill", colorvalues.greens[5]);
             })
-            .on("mouseleave", function(d) { 
-                d3.select(this).style("fill",colorvalues.greens[3]);
+            .on("mouseleave", function(d) {
+                if(!d.selected) {
+                    d3.select(this)
+                        .transition()
+                        .attr("r", d.r)
+                        .style("fill", colorvalues.greens[3]);
+                }
             })
             .on('click', function(d) {
-				var f = dataroot.filter(function(n) { return n.name == d.name; });	
-				if(f.length > 0) {
+				var f = node.children.filter(function(n) { return n.name == d.name; });	
+				if(f.length > 0 && 'children' in f[0]) {
 					selected = true;
 					d3.select(".inner").text(f[0].name);
-					update(f[0].children);
+					update(f[0]);
 				} else {
-
-				}
+                    if(Object.keys(group).length < 4 && !(d.name in group)) {
+                        d.selected = true;
+                        var n = this
+                        d3.select(n)
+                            .attr("r", d.r*1.1)
+                            .style("fill", colorvalues.greens[5]);
+                        group[d.name] = d.value;
+                        $("<li>")
+                            .addClass("list-group-item")
+                            .addClass(d.name)
+                            .html(d.name + "<code>"+node.name+"</code>")
+                            .append($("<i>")
+                                .addClass("fa")
+                                .addClass("fa-times")
+                                .css("float", "right")
+                                .css("cursor", "pointer")
+                                .on("click", function() {
+                                    $("."+d.name).remove();
+                                    d.selected = false;
+                                    d3.select(n)
+                                        .attr("r", d.r)
+                                        .style("fill", colorvalues.greens[3]);
+                                    delete group[d.name];
+                                }))
+                            .insertBefore(".group .footer");
+                        $("#groupvar").text(getVariance());
+				    }
+                }
             });
 
         gnodes.append("text")
@@ -85,7 +123,13 @@ $(function () {
         	.style("opacity", 0)
         	.text(function(d) { return d.name; });
 
-        gnodes.selectAll('circle').transition().duration(1000).attr("r", function(d) { return d.r; });
+        gnodes.selectAll('circle').transition().duration(1000).attr("r", function(d) { 
+            if(d.selected) {
+                return d.r * 1.1; 
+            } else {
+                return d.r;
+            }
+        });
         gnodes.selectAll('text').transition().duration(1000).style("opacity", .9);
         
         force.gravity(-0.015)
@@ -105,14 +149,14 @@ $(function () {
             })
             .start();     
 
-        setTimeout(function() { force.stop(); },5000);
+        setTimeout(function() { force.stop(); },10000);
 	}
 
 	d3.select("#back")
 		.on("click", function() {
 			if(selected) {
-				d3.select(".inner").text(rootname);
-				update(dataroot);
+				d3.select(".inner").text(root.name);
+				update(root);
 				selected = false;
 			}
 		});
@@ -133,6 +177,18 @@ $(function () {
 		}), node.length];
 	}
 
+    function getVariance() {
+        var sum = 0;
+        for(var k in group)
+            sum += group[k];
+        var avg = sum / Object.keys(group).length;
+        var ss = 0;
+        for(var k in group) {
+            ss += Math.pow((group[k] - avg), 2);
+        }
+        return ss / Object.keys(group).length;
+    }
+
 	function classes(arr) {
 		var nodes = arr[0];
 		var c = [];
@@ -145,6 +201,7 @@ $(function () {
 		        value: d.size,
 		        x: Math.random() * width,
 		        y: Math.random() * height,
+                selected: (d.name in group) 
 		    });
 		});
 		c.sort(function(a,b) { return b.value - a.value; });

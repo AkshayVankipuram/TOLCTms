@@ -24,10 +24,10 @@ urlpatterns = [
     url(r'^bulletin/', views.bulletin, name="bullentin"),
     url(r'^chart_data/', views.chart_data, name="chart_data"),
     url(r'^calendar/', views.calendar, name="calendar"),
+    url(r'^event_stream/$', views.event_stream, name="event_stream"),
+    url(r'^resource_stream/$', views.resource_stream, name="resource_stream"),
     url(r'^feedback/', views.feedback, name="feedback"),
     url(r'^save_skills/', views.save_skills, name="save_skills"),
     url(r'^save_event/$', views.save_event, name="save_event"),
     url(r'^logged_users/$', views.get_logged_users, name="get_logged_users"),
-    url(r'^event_stream/$', views.event_stream, name="event_stream"),
-    url(r'^resource_stream/$', views.resource_stream, name="resource_stream")
 ]

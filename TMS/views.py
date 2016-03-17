@@ -54,7 +54,7 @@ def home(request):
         'taskData': get_tasks_for_user(request.user),
         'prefs': {
             'current': get_prefs(request.user),
-            'allskills': sorted([s.name for s in models.Skill.objects.all()])
+            'allskills': sorted([s.name for s in models.SkillRepo.objects.all()])
         }
    })
 
@@ -63,7 +63,7 @@ def bulletin(request):
     t = request.GET.get('title', '')
 
     cprefs = get_prefs(request.user)
-    cskills = [cprefs['skill_1']['name'], cprefs['skill_2']['name'], cprefs['skill_3']['name']]
+    cskills = [s['name'] for s in cprefs['skills']]
 
     context = {'title' : 'Bulletin Board'}
     course = models.Course.objects.get(title=c)
@@ -84,25 +84,26 @@ def bulletin(request):
         'name': request.user.username,
     }
 
-    return render(request, 'bulletin.html', context)   
+    return render(request, 'bulletin.html', context)
 
 def chart_data(request):
     c = request.GET.get('course', '')
     course = models.Course.objects.get(title=c)
 
     cprefs = get_prefs(request.user)
-    cskills = [cprefs['skill_1']['name'], cprefs['skill_2']['name'], cprefs['skill_3']['name']]
+    cskills = [s['name'] for s in cprefs['skills']]
 
     if course is not None:
         chartdata = { 'name': course.title, 'children': [] }
-        allskills = models.Skill.objects.exclude(name__in=cskills).all()
+        allskills = models.SkillRepo.objects.exclude(name__in=cskills).all()
         for skill in allskills:
-            students_with_skill = course.students.filter(Q(skill_1=skill) | Q(skill_2=skill) | Q(skill_3=skill))
+            skillobjs = models.Skill.objects.filter(name=skill.name)
+            students_with_skill = course.students.filter(skills__in=skillobjs)
             chartdata['children'].append({ 'name' : skill.name.capitalize(), 'children': [] })
             for student in students_with_skill.all():
                 chartdata['children'][len(chartdata['children']) - 1]['children'].append({
-                        'name': student.get_username().capitalize(), 
-                        'size': (student.skill_1_lvl + student.skill_2_lvl + student.skill_3_lvl) / 3.0 * (student.reputation + 1)
+                        'name': student.get_username().capitalize(),
+                        'size': (student.reputation + 1)
                     })
 
     return JsonResponse(chartdata)
@@ -110,9 +111,40 @@ def chart_data(request):
 def calendar(request):
     if not request.user.is_authenticated():
         return redirect('/')
-    return render(request, 'calendar.html', {
+
+    c = request.GET.get('course', '')
+    t = request.GET.get('task', '')
+
+    context = {
             'title': 'Calendar',
-        })
+            'task': t,
+            'course': c
+        }
+    context["user_login"] = {
+        'url': '/logout',
+        'msg': 'Logout',
+        'name': request.user.username,
+    }
+    return render(request, 'calendar.html', context)
+
+def event_stream(request):
+    task = request.GET.get('task', '')
+    task = models.Task.objects.get(title=task)
+    events = {}
+    if task is not None:
+        context['resourceId'] = 'task'
+
+    return JsonResponse(context)
+
+def resource_stream(request):
+    context['resources'] = [{
+            'id': 'task',
+            'title': task
+        }, {
+            'id': 'currentuser',
+            'title': u.get_username().capitalize()
+        }]
+    return JsonResponse()
 
 def feedback(request):
     return HttpResponse("OK")
@@ -156,13 +188,6 @@ def save_event(request):
         #t.set_from_cal_event_format(j)
         #t.save()
     return HttpResponse('OK')
-
-def event_stream(request):
-    return JsonResponse({})
-
-def resource_stream(request):
-    return JsonResponse({})
-
 
 def get_relevant_tasks(user):
     u = models.TMSUser.objects.get(user=user)

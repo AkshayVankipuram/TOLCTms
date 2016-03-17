@@ -5,12 +5,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 class TMSUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    skill_1 = models.ForeignKey('Skill', null=True, related_name="+")
-    skill_2 = models.ForeignKey('Skill', null=True, related_name="+")
-    skill_3 = models.ForeignKey('Skill', null=True, related_name="+")
-    skill_1_lvl = models.PositiveIntegerField(default=0, validators=[MinValueValidator(1), MaxValueValidator(5)])
-    skill_2_lvl = models.PositiveIntegerField(default=0, validators=[MinValueValidator(1), MaxValueValidator(5)])
-    skill_3_lvl = models.PositiveIntegerField(default=0, validators=[MinValueValidator(1), MaxValueValidator(5)])
+    skills = models.ManyToManyField('Skill', related_name="+")
     reputation = models.PositiveIntegerField(default=0)
     colocate_pref = models.BooleanField(default=False)
 
@@ -48,16 +43,15 @@ class TMSUser(models.Model):
             u.delete()
 
     def skills_to_json(self):
-        return { 
-                'colocate_pref' : self.colocate_pref, 
-                'skill_1' : {'name': self.skill_1.name, 'level': self.skill_1_lvl},
-                'skill_2' : {'name': self.skill_2.name, 'level': self.skill_2_lvl},
-                'skill_3' : {'name': self.skill_3.name, 'level': self.skill_3_lvl},
+        return {
+                'colocate_pref' : self.colocate_pref,
+                'skills': [s.to_json() for s in self.skills.all()]
             }
 
-
-class Skill(models.Model):
-    name = models.CharField(max_length=10, primary_key=True)
+class TMSGroup(models.Model):
+    name = models.CharField(max_length=50)
+    members = models.ManyToManyField('TMSUser', related_name="groups")
+    cumulative_rep = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.name
@@ -65,6 +59,40 @@ class Skill(models.Model):
     def __unicode__(self):
         return self.name
 
+    def set_group_rep(self):
+        self.cumulative_rep = sum([u.reputation for u in self.members.all()])
+
+class Skill(models.Model):
+    name = models.ForeignKey('SkillRepo', related_name="+")
+    level = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(5)])
+
+    def __str__(self):
+        if self.name is not None:
+            return self.name.name
+        else:
+            return ''
+
+    def __unicode__(self):
+        if self.name is not None:
+            return self.name.name
+        else:
+            return ''
+
+    def to_json(self):
+        return {
+                'name': self.name,
+                'level': self.level
+            }
+
+
+class SkillRepo(models.Model):
+    name = models.CharField(max_length=10, primary_key=True)
+
+    def __str__(self):
+        return self.name
+
+    def __unicode__(self):
+        return self.name
 
 class Course(models.Model):
     title = models.CharField(max_length=50)
@@ -93,15 +121,8 @@ class Task(models.Model):
 
     cowner = models.ForeignKey(Course, null=True, related_name="tasks")
     uowner = models.ForeignKey(TMSUser, null=True, related_name="tasks")
-    
-    skill_1 = models.ForeignKey('Skill', null=True, related_name="+")
-    skill_2 = models.ForeignKey('Skill', null=True, related_name="+")
-    skill_3 = models.ForeignKey('Skill', null=True, related_name="+")
-    skill_4 = models.ForeignKey('Skill', null=True, related_name="+")
-    skill_1_lvl = models.PositiveIntegerField(default=0, validators=[MinValueValidator(1), MaxValueValidator(5)])
-    skill_2_lvl = models.PositiveIntegerField(default=0, validators=[MinValueValidator(1), MaxValueValidator(5)])
-    skill_3_lvl = models.PositiveIntegerField(default=0, validators=[MinValueValidator(1), MaxValueValidator(5)])
-    skill_4_lvl = models.PositiveIntegerField(default=0, validators=[MinValueValidator(1), MaxValueValidator(5)])
+
+    skills = models.ManyToManyField('Skill', related_name="+")
 
     grouped = models.BooleanField(default=False)
     completed = models.BooleanField(default=False)
@@ -146,17 +167,8 @@ class Task(models.Model):
             'grouped': self.grouped,
             'completed': self.completed,
             'evaluated': self.evaluated,
-            'skills': []
+            'skills': [s.name for s in self.skills.all()]
         }
 
-        if self.skill_1 is not None:
-            ret['skills'].append({'name': self.skill_1.name, 'level': self.skill_1_lvl})
-        if self.skill_2 is not None:
-            ret['skills'].append({'name': self.skill_2.name, 'level': self.skill_2_lvl})
-        if self.skill_3 is not None:
-            ret['skills'].append({'name': self.skill_3.name, 'level': self.skill_3_lvl})
-        if self.skill_4 is not None:
-            ret['skills'].append({'name': self.skill_4.name, 'level': self.skill_4_lvl})
-
-        return ret                   
+        return ret
 

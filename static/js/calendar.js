@@ -2,8 +2,6 @@ $(function() {
 
     var calContainer = $("#cal_holder");
 
-    var LOGGED_USERS = [];
-
     $('#eventCreate').modal({
         show: false,
         keyboard: false,

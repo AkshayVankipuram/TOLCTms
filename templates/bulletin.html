@@ -23,9 +23,9 @@
     }
 
 </style>
-<div class="container">
+<div class="container-fluid">
     <div class="row">
-        <div class="col-md-3">
+        <div class="col-md-2">
             <ul class="list-group">
                 <li class="list-group-item list-group-item-info">Your Skills</li>
                 {% for skill in yskills %}
@@ -42,7 +42,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-9">
+        <div class="col-md-8">
             <div class="panel panel-info">
                 <div class="panel-heading">Postings</div>
                 <div class="panel-heading"><span id="back"><i class="fa fa-chevron-left"></i>&nbsp;<span class="inner">{{ name }}</span></span></div>
@@ -51,6 +51,15 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="col-md-2">
+            <ul class="list-group group">
+                <li class="list-group-item list-group-item-info">Group</li>
+                <li class="list-group-item list-group-item-success footer">
+                    Variance: <span id="groupvar">0.0</span>
+                </li>
+                <a class="list-group-item list-group-item-info">Submit</a>
+            </ul>
         </div>
     </div>
 </div>
