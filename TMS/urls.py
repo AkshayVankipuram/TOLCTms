@@ -29,5 +29,4 @@ urlpatterns = [
     url(r'^feedback/', views.feedback, name="feedback"),
     url(r'^save_skills/', views.save_skills, name="save_skills"),
     url(r'^save_event/$', views.save_event, name="save_event"),
-    url(r'^logged_users/$', views.get_logged_users, name="get_logged_users"),
 ]

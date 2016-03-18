@@ -112,39 +112,43 @@ def calendar(request):
     if not request.user.is_authenticated():
         return redirect('/')
 
-    c = request.GET.get('course', '')
-    t = request.GET.get('task', '')
-
     context = {
-            'title': 'Calendar',
-            'task': t,
-            'course': c
+        'title': 'Calendar',
+        "user_login":  {
+            'url': '/logout',
+            'msg': 'Logout',
+            'name': request.user.username,
         }
-    context["user_login"] = {
-        'url': '/logout',
-        'msg': 'Logout',
-        'name': request.user.username,
     }
     return render(request, 'calendar.html', context)
 
 def event_stream(request):
-    task = request.GET.get('task', '')
-    task = models.Task.objects.get(title=task)
-    events = {}
-    if task is not None:
-        context['resourceId'] = 'task'
-
-    return JsonResponse(context)
+    u = models.TMSUser.objects.get(user=request.user)
+    return JsonResponse({})
 
 def resource_stream(request):
-    context['resources'] = [{
-            'id': 'task',
-            'title': task
-        }, {
-            'id': 'currentuser',
-            'title': u.get_username().capitalize()
-        }]
-    return JsonResponse()
+    u = models.TMSUser.objects.get(user=request.user)
+    resources = []
+    for course in u.courses.all():
+        resources.append({
+                'id': 'course_task_'+course.title.replace(' ', '_').lower(),
+                'title': 'Course Task',
+                'course': course.title
+            })
+        resources.append({
+                'id': u.get_username().replace(' ', '_'),
+                'title': u.get_username().capitalize(),
+                'course': course.title
+            })
+        for group in u.groups.filter(course=course).all():
+            for member in group.members.exclude(user=request.user).all():
+                resources.append({
+                        'id': member.get_username().replace(' ', '_'),
+                        'title': member.get_username().capitalize(),
+                        'course': course.title
+                    })
+
+    return JsonResponse(resources, safe=False)
 
 def feedback(request):
     return HttpResponse("OK")
@@ -202,12 +206,3 @@ def get_tasks_by_title(user):
         ret.extend([t['title'] for t in u.get_tasks(True)])
     return ret
 
-def get_logged_users(request):
-    sessions = Session.objects.filter(expire_date__gte=timezone.now())
-    uids = [session.get_decoded().get('_auth_user_id', None) for session in sessions]
-    ret = []
-    for u in User.objects.filter(id__in=uids).exclude(username=request.user.username).all():
-        print(u.username)
-        tms = models.TMSUser.objects.get(user=u)
-        ret.append(tms.get_username())
-    return JsonResponse(ret, safe=False)

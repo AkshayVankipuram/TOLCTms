@@ -51,6 +51,7 @@ class TMSUser(models.Model):
 class TMSGroup(models.Model):
     name = models.CharField(max_length=50)
     members = models.ManyToManyField('TMSUser', related_name="groups")
+    course = models.ForeignKey('Course', null=True, related_name="groups")
     cumulative_rep = models.PositiveIntegerField(default=0)
 
     def __str__(self):
@@ -80,7 +81,7 @@ class Skill(models.Model):
 
     def to_json(self):
         return {
-                'name': self.name,
+                'name': self.name.name,
                 'level': self.level
             }
 

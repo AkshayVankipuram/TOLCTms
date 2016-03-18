@@ -1,22 +1,15 @@
 $(function() {
-
-	check($('#icon_'+PREFSKILL1.name));
-	check($('#icon_'+PREFSKILL2.name));
-	check($('#icon_'+PREFSKILL3.name));
-
-	$("#slider_"+PREFSKILL1.name).val(PREFSKILL1.level);
-	$("#slider_"+PREFSKILL2.name).val(PREFSKILL2.level);
-	$("#slider_"+PREFSKILL3.name).val(PREFSKILL3.level);
-
-	$("#slider_"+PREFSKILL1.name).attr('disabled', false);
-	$("#slider_"+PREFSKILL2.name).attr('disabled', false);
-	$("#slider_"+PREFSKILL3.name).attr('disabled', false);
-
-	var max_selected = 3;
+	
+    var max_selected = 3;
 	var current_skills = {};
-	current_skills[PREFSKILL1.name] = PREFSKILL1.level;
-	current_skills[PREFSKILL2.name] = PREFSKILL2.level;
-	current_skills[PREFSKILL3.name] = PREFSKILL3.level;
+    
+    for(var i in PREFS.skills) {
+        var skill = PREFS.skills[i];
+        check($("#icon_"+skill.name));
+	    $("#slider_"+skill.name).val(skill.level).attr('disabled', false);
+        current_skills[skill.name] = skill.level;
+    }
+
 
 	$(".skillcheckicon").on('click', function() {
 		var skill = $(this).attr('id').split('_')[1];

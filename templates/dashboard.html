@@ -70,7 +70,7 @@
                                             {% if task.grouped == False and task.completed == False and task.evaluated == False %}
                                             <a class="list-group-item" href="/bulletin/?course={{course}}&title={{task.title}}">Group<i class="fa fa-users ralign"></i></a>
                                             {% elif task.grouped == True and task.completed == False and task.evaluated == False %}
-                                            <a class="list-group-item" href="/calendar/">Group<i class="fa fa-calendar ralign"></i></a>
+                                            <a class="list-group-item" href="/calendar/">Calendar<i class="fa fa-calendar ralign"></i></a>
                                             {% else %}
                                             <a class="list-group-item list-group-item-danger" href="/feedback/">Group Evaluation<i class="fa fa-comment ralign"></i></a>
                                             {% endif %}
@@ -96,10 +96,7 @@
     </div>
 </div>
 <script type="text/javascript">
-    var PREFSKILL1 = {{ prefs.current.skill_1 | safe }};
-    var PREFSKILL2 = {{ prefs.current.skill_2 | safe }};
-    var PREFSKILL3 = {{ prefs.current.skill_3 | safe }};
-    var PREFCOLOC = {% if prefs.current.colocate_pref == True %} true {% else %} false {% endif %};
+    var PREFS = {{ prefs.current | safe }};
 </script>
 <script src="{% static 'js/dashboard.js' %}"></script>
 {% endblock %}

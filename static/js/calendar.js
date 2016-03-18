@@ -29,106 +29,38 @@ $(function() {
     var toDeleteEvent = '';
 
     function refetch() {
-        $.getJSON('/logged_users/', function(ulist) {
-            LOGGED_USERS = ulist;
-            calContainer.fullCalendar('refetchResources');
-            calContainer.fullCalendar('refetchEvents');
-        });    
+        calContainer.fullCalendar('refetchResources');
+        calContainer.fullCalendar('refetchEvents');
     }
 
     calContainer.fullCalendar({
         schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
         aspectRatio: (screen.availWidth * 0.9) / (screen.availHeight),
         header: {
+            left: 'today prev,next',
             center: 'title',
-            left: 'today',
-            'right': 'timelineCustom'
+            right: 'timelineDay, timelineWeek, timelineMonth'
         },
-        views: {
-            timelineCustom: {
-                type: 'timeline',
-                duration: {
-                    days: 10
-                }
-            }
-        },
-        defaultView: 'timelineCustom',
+        defaultView: 'timelineWeek',
         allDayDefault: false,
         businessHours: false,
         selectable: true,
         selectHelper: true,
         select: function(start, end, js, v, res) {
-            if(res.title != USERNAME) {
-                calContainer.fullCalendar('unselect');
-                return false;
-            }
-            $('#eventCreate').modal('show');
-            currentEvt = Object.create(evtObj);
-            currentEvt.start = start;
-            currentEvt.end = end;
             calContainer.fullCalendar('unselect');
         },
         editable: true,
         eventLimit: true,
         eventDrop: function(ce, d, rf) {
-            if(ce.resourceId != USERNAME) {
-                rf();
-                return false;
-            }
-            /*$.getJSON('/save_event/?event='+JSON.stringify({
-                id: ce.id,
-                title: ce.title,
-                description: ce.description,
-                start: ce.start,
-                end: ce.end,
-                editable: ce.editable,
-                parent: ce.parent,
-                children: ce.children,
-                color: encodeURIComponent(ce.color)
-            }));*/
         },
         eventResize: function(ce, d, rf) {
-            /*$.getJSON('/save_event/?event='+JSON.stringify({
-                id: ce.id,
-                title: ce.title,
-                description: ce.description,
-                start: ce.start,
-                end: ce.end,
-                editable: ce.editable,
-                parent: ce.parent,
-                children: ce.children,
-                color: encodeURIComponent(ce.color)
-            }));*/
         },
         eventClick: function(ce, js, v) {
-            /*if(calContainer.fullCalendar('clientEvents', ce._id)[0].editable) {
-                $("#eventDelete").css('display','block');
-            } else {
-                $("#eventDelete").css('display','none');
-            }
-            toDeleteEvent = ce._id;*/
-            createEventView(ce);
         },
-        resourceLabelText: 'Group',
+        resourceLabelText: 'Course',
         resourceAreaWidth: '15%',
-        resourceGroupField: 'group',
+        resourceGroupField: 'course',
         resourceRender: function(res, labelTds, bodyTds) {
-            if(res.title == USERNAME) {
-                labelTds.css("background", res.eventColor);
-                labelTds.css("color", 'white');
-            }
-            
-            if(LOGGED_USERS.indexOf(res.title) >= 0) {
-                var h = labelTds.html().replace(res.title, 
-                        res.title + 
-                        '&nbsp;<code><small>on</small></code>');
-                labelTds.html(h);
-            } else if(res.title != 'Course Tasks' && res.title != USERNAME) {
-                var h = labelTds.html().replace(res.title, 
-                        res.title + 
-                        '&nbsp;<code><small>off</small></code>');
-                labelTds.html(h);
-            }
         },
         resources: {
             url: '/resource_stream/'
@@ -269,6 +201,6 @@ $(function() {
 
     setInterval(function() {
         refetch();
-    }, 5 * 60 * 1000);
+    }, 10 * 60 * 1000);
 
 });
