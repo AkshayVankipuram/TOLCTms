@@ -2,12 +2,13 @@ from django.db import models
 from django.contrib.auth.models import User, Group
 from django.utils import dateparse, timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.contrib.contenttypes.fields import GenericForeignKey
 
 class TMSUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     skills = models.ManyToManyField('Skill', related_name="+")
-    reputation = models.PositiveIntegerField(default=0)
-    colocate_pref = models.BooleanField(default=False)
+    reputation = models.FloatField(default=0.0)
+    colocate = models.BooleanField(default=False)
 
     def __str__(self):
         if self.user is None:
@@ -21,6 +22,7 @@ class TMSUser(models.Model):
         else:
             return self.user.username
 
+    @staticmethod
     def get_user(username):
         u = User.objects.get(username=username)
         if u is not None:
@@ -42,17 +44,13 @@ class TMSUser(models.Model):
         if u is not None:
             u.delete()
 
-    def skills_to_json(self):
-        return {
-                'colocate_pref' : self.colocate_pref,
-                'skills': [s.to_json() for s in self.skills.all()]
-            }
-
 class TMSGroup(models.Model):
     name = models.CharField(max_length=50)
     members = models.ManyToManyField('TMSUser', related_name="groups")
     course = models.ForeignKey('Course', null=True, related_name="groups")
-    cumulative_rep = models.PositiveIntegerField(default=0)
+    task = models.ForeignKey('Task', null=True, related_name="+")
+    completed = models.BooleanField(default=False)
+    evaluated = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -64,36 +62,15 @@ class TMSGroup(models.Model):
         self.cumulative_rep = sum([u.reputation for u in self.members.all()])
 
 class Skill(models.Model):
-    name = models.ForeignKey('SkillRepo', related_name="+")
-    level = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(5)])
-
-    def __str__(self):
-        if self.name is not None:
-            return self.name.name
-        else:
-            return ''
-
-    def __unicode__(self):
-        if self.name is not None:
-            return self.name.name
-        else:
-            return ''
-
-    def to_json(self):
-        return {
-                'name': self.name.name,
-                'level': self.level
-            }
-
-
-class SkillRepo(models.Model):
-    name = models.CharField(max_length=10, primary_key=True)
+    name = models.CharField(max_length=15)
+    level = models.FloatField(default=1.0, validators=[MinValueValidator(0.0), MaxValueValidator(5.0)])
 
     def __str__(self):
         return self.name
 
     def __unicode__(self):
         return self.name
+
 
 class Course(models.Model):
     title = models.CharField(max_length=50)
@@ -113,6 +90,7 @@ class Course(models.Model):
             ret.append(task.to_json())
         return ret
 
+
 class Task(models.Model):
     parent = models.ForeignKey('self', null=True, related_name="children")
     title = models.CharField(max_length=20)
@@ -120,14 +98,10 @@ class Task(models.Model):
     start = models.DateTimeField(null=True)
     end = models.DateTimeField(null=True)
 
-    cowner = models.ForeignKey(Course, null=True, related_name="tasks")
-    uowner = models.ForeignKey(TMSUser, null=True, related_name="tasks")
-
     skills = models.ManyToManyField('Skill', related_name="+")
 
-    grouped = models.BooleanField(default=False)
-    completed = models.BooleanField(default=False)
-    evaluated = models.BooleanField(default=False)
+    course_owner = models.ForeignKey('Course', null=True, related_name="tasks")
+    user_owner = models.ForeignKey('TMSUser', null=True, related_name="tasks")
 
     def __str__(self):
         return self.title
@@ -154,21 +128,32 @@ class Task(models.Model):
         self.start = Task.parse_time_str(start_str)
         self.end = Task.parse_time_str(end_str)
 
-    def to_json(self):
+    def to_json(self, isoformat=True):
         if self.end < timezone.now():
             self.completed = True
             self.save()
+
+        if self.course_owner is not None:
+            owner = self.course_owner.title
+        elif self.user_owner is not None:
+            owner = self.user_owner.get_username()
+        else:
+            owner = "None"
+
+        format_start = self.start.isoformat()
+        format_end = self.end.isoformat()
+        if not isoformat:
+            format_start = self.start.strftime('%m-%d-%Y %H:%M:%S')
+            format_end = self.end.strftime('%m-%d-%Y %H:%M:%S')
 
         ret = {
             'id': self.title.replace(' ', '_').lower(),
             'title': self.title,
             'description': self.description,
-            'start': self.start.strftime('%m-%d-%Y %H:%M:%S'),
-            'end': self.end.strftime('%m-%d-%Y %H:%M:%S'),
-            'grouped': self.grouped,
-            'completed': self.completed,
-            'evaluated': self.evaluated,
-            'skills': [s.name for s in self.skills.all()]
+            'start': format_start,
+            'end': format_end,
+            'owner': owner,
+            'skills': [{'name': s.name, 'level': s.level} for s in self.skills.all()]
         }
 
         return ret

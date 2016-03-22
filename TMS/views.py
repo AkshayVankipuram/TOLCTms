@@ -44,6 +44,7 @@ def logout_user(request):
 def home(request):
     if not request.user.is_authenticated():
         return redirect('/')
+    u = models.TMSUser.objects.get(user=request.user)
     return render(request, 'dashboard.html', {
         'title': 'Dashboard',
         'user_login': {
@@ -51,102 +52,100 @@ def home(request):
             'msg': 'Logout',
             'name': request.user.username,
         },
-        'taskData': get_tasks_for_user(request.user),
-        'prefs': {
-            'current': get_prefs(request.user),
-            'allskills': sorted([s.name for s in models.SkillRepo.objects.all()])
-        }
+        'skills': get_skills(u),
+        'reputation': u.reputation,
+        'colocate': u.colocate,
+        'notifications': get_notifications(u)
    })
+
+def get_notifications(user):
+    ret = []
+    for course in user.courses.all():
+        for task in course.tasks.all():
+            g = user.groups.filter(task=task).all()
+            if not g:
+                ret.append(task.to_json())
+    return ret
 
 def bulletin(request):
     c = request.GET.get('course', '')
-    t = request.GET.get('title', '')
+    t = request.GET.get('task', '')
 
-    cprefs = get_prefs(request.user)
-    cskills = [s['name'] for s in cprefs['skills']]
+    context = {'title' : 'Bulletin Board', 'course': c }
 
-    context = {'title' : 'Bulletin Board'}
-    course = models.Course.objects.get(title=c)
-    if course is not None:
-        context['name'] = course.title
-        task = course.tasks.get(title=t)
-        if task is not None:
-            j = task.to_json()
-            context['task'] = j.copy()
-            context['task']['skills'] = []
-            for skill in j['skills']:
-                if skill not in cskills:
-                    context['task']['skills'].append(skill)
-    context["yskills"] = cskills
-    context["user_login"] = {
-        'url': '/logout',
-        'msg': 'Logout',
-        'name': request.user.username,
-    }
+    u = models.TMSUser.objects.get(user=request.user)
+    task = models.Task.objects.get(title=t)
+    group_formed = u.groups.filter(task=task).all()
 
-    return render(request, 'bulletin.html', context)
-
-def chart_data(request):
-    c = request.GET.get('course', '')
-    course = models.Course.objects.get(title=c)
-
-    cprefs = get_prefs(request.user)
-    cskills = [s['name'] for s in cprefs['skills']]
-
-    if course is not None:
-        chartdata = { 'name': course.title, 'children': [] }
-        allskills = models.SkillRepo.objects.exclude(name__in=cskills).all()
-        for skill in allskills:
-            skillobjs = models.Skill.objects.filter(name=skill.name)
-            students_with_skill = course.students.filter(skills__in=skillobjs)
-            chartdata['children'].append({ 'name' : skill.name.capitalize(), 'children': [] })
-            for student in students_with_skill.all():
-                chartdata['children'][len(chartdata['children']) - 1]['children'].append({
-                        'name': student.get_username().capitalize(),
-                        'size': (student.reputation + 1)
-                    })
-
-    return JsonResponse(chartdata)
-
-def calendar(request):
-    if not request.user.is_authenticated():
+    if not group_formed:
+        context['task'] = task.to_json(False)
+        for skill in context['task']['skills']:
+            if skill['level'] - int(skill['level']) > 0.5:
+                v  = int(skill['level']) + 1
+            else:
+                v = int(skill['level'])
+            skill['level'] = (v * [1]) + ((5 - v) * [0])
+        u = models.TMSUser.objects.get(user=request.user)
+        context['skills'] = [s.name[:min(4, len(s.name))].capitalize() for s in u.skills.all()]
+        return render(request, 'bulletin.html', context)
+    else:
         return redirect('/')
 
-    context = {
-        'title': 'Calendar',
-        "user_login":  {
-            'url': '/logout',
-            'msg': 'Logout',
-            'name': request.user.username,
-        }
-    }
-    return render(request, 'calendar.html', context)
+def table_data(request):
+    c = request.GET.get('course', '')
+    t = request.GET.get('task', '')
+
+    course = models.Course.objects.get(title=c)
+    context = { 'data' : [] }
+    task = models.Task.objects.get(title=t)
+    for u in course.students.exclude(user=request.user).all():
+        g = u.groups.filter(task=task)
+        if not g:
+            skill_vals = [round(s.level, 2) for s in u.skills.all()]
+            context['data'].append([
+                    u.get_username().capitalize(),
+                    u.user.email] +
+                    skill_vals + [
+                    u.reputation
+                 ])
+
+    return JsonResponse(context)
 
 def event_stream(request):
     u = models.TMSUser.objects.get(user=request.user)
-    return JsonResponse({})
+    events = []
+    for course in u.courses.all():
+        for group in u.groups.filter(course=course).all():
+            obj = group.task.to_json()
+            obj.update({
+                'ctitle': group.name,
+                'editable': False,
+                'resourceId': 'group_task_'+group.name.replace(' ', '_').lower(),
+                })
+            events.append(obj)
+    return JsonResponse(events, safe=False)
 
 def resource_stream(request):
     u = models.TMSUser.objects.get(user=request.user)
     resources = []
     for course in u.courses.all():
-        resources.append({
-                'id': 'course_task_'+course.title.replace(' ', '_').lower(),
-                'title': 'Course Task',
-                'course': course.title
-            })
-        resources.append({
-                'id': u.get_username().replace(' ', '_'),
-                'title': u.get_username().capitalize(),
-                'course': course.title
-            })
         for group in u.groups.filter(course=course).all():
-            for member in group.members.exclude(user=request.user).all():
-                resources.append({
+            obj = {
+                    'course': course.title,
+                    'title': group.name,
+                    'id': 'group_task_'+group.name.replace(' ', '_').lower(),
+                    'editable': False,
+                    'children': []
+                }
+            for member in group.members.all():
+                editable = (member.get_username() == u.get_username())
+                obj['children'].append({
                         'id': member.get_username().replace(' ', '_'),
                         'title': member.get_username().capitalize(),
-                        'course': course.title
+                        'course': course.title,
+                        'editable': editable
                     })
+            resources.append(obj)
 
     return JsonResponse(resources, safe=False)
 
@@ -161,10 +160,13 @@ def get_tasks_for_user(user):
             ret[course.title] = { 'instructor' : course.instructor, 'semester': course.semester, 'tasks': course.get_tasks() }
     return ret
 
-def get_prefs(user):
-    u = models.TMSUser.objects.get(user=user)
+def get_skills(u):
     if u is not None:
-        return u.skills_to_json()
+        return [{
+            'name': s.name,
+            'rating': round(s.level, 1),
+            'id': s.name.replace(' ', '_').lower()
+        } for s in u.skills.all()]
     else:
         return []
 

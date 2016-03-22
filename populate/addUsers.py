@@ -12,22 +12,17 @@ def read_file(fname, names):
 
 def populate(names):
     random.seed()
-    dbskills = list(models.SkillRepo.objects.all())
+    skills = ['database', 'system', 'web', 'oop', 'communication', 'scripting', 'statistics']
     for name in names:
         u = models.TMSUser()
         print('Creating ' + name)
         u.create_user(name, name+'pass', name, name+'@tolc.edu')
-        num_skills = random.randint(0, 4)
         u.save()
-        for i in range(0, num_skills):
-            s = models.Skill()
-            s.name = dbskills[random.randint(0, len(dbskills) - 1)]
-            s.level = random.randint(1, 5)
+        for skill in skills:
+            s = models.Skill(name=skill)
+            s.level = random.uniform(0.0, 5.0)
             s.save()
             u.skills.add(s)
-        b = random.randint(0, 1)
-        if b == 0:
-            u.colocate_pref = False
-        else:
-            u.colocate_pref = True
         u.save()
+
+

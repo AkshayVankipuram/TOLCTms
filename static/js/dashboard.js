@@ -1,63 +1,67 @@
 $(function() {
-	
-    var max_selected = 3;
-	var current_skills = {};
-    
-    for(var i in PREFS.skills) {
-        var skill = PREFS.skills[i];
-        check($("#icon_"+skill.name));
-	    $("#slider_"+skill.name).val(skill.level).attr('disabled', false);
-        current_skills[skill.name] = skill.level;
+
+    $('.lvl').on('change', function() {
+        var rating = +$(this).val();
+        var id = $(this).attr("id").split("slider_")[1];
+        $('#rating_'+id).text(rating);
+    });
+
+
+    var calContainer = $("#cal_holder");
+
+    function refetch() {
+        calContainer.fullCalendar('refetchResources');
+        calContainer.fullCalendar('refetchEvents');
     }
 
+    calContainer.fullCalendar({
+        schedulerLicenseKey: 'CC-Attribution-NonCommercial-NoDerivatives',
+        aspectRatio: (screen.availWidth) / (screen.availHeight),
+        header: {
+            left: 'today prev,next',
+            center: 'title',
+            right: 'timelineDay,timelineWeek,month'
+        },
+        defaultView: 'timelineWeek',
+        allDayDefault: false,
+        businessHours: false,
+        selectable: true,
+        selectHelper: true,
+        select: function(start, end, js, v, res) {
+            calContainer.fullCalendar('unselect');
+        },
+        editable: true,
+        eventLimit: true,
+        eventDrop: function(ce, d, rf) {
+        },
+        eventResize: function(ce, d, rf) {
+        },
+        eventClick: function(ce, js, v) {
+        },
+        eventRender: function(ce, js, v) {
+        },
+        resourceLabelText: 'Courses',
+        resourceAreaWidth: '15%',
+        resourceGroupField: 'course',
+        resourceRender: function(res, labelTds, bodyTds) {
+            if(res.id.indexOf('group_task') > -1) {
+                labelTds.addClass('bg-success');
+                bodyTds.addClass('bg-success');
+            } else if(res.id == USERNAME) {
+                labelTds.addClass('text-primary');
+            }
+        },
+        resources: {
+            url: '/resource_stream/'
+        },
+        events: {
+            url: '/event_stream/'
+        }
+    });
+		
+	refetch();
 
-	$(".skillcheckicon").on('click', function() {
-		var skill = $(this).attr('id').split('_')[1];
-		if($(this).hasClass('checked')) {
-			uncheck($(this));
-			if(skill in current_skills)
-				delete current_skills[skill];
-			$("#slider_"+skill).val(0);
-			$("#slider_"+skill).attr('disabled', true);
-			max_selected --;
-		} else if(max_selected < 3) {
-			check($(this));	
-			current_skills[skill] = 0;
-			$("#slider_"+skill).attr('disabled', false);
-			max_selected ++;
-		}
-		save_skills(current_skills);
-		$('#selnum').text(max_selected);
-	});
-
-	$('.lvl').on('change', function() {
-		var skill = $(this).attr('id').split('_')[1];
-		if(skill in current_skills) {
-			current_skills[skill] = $(this).val();
-		}
-		save_skills(current_skills);
-	});
-
-	function uncheck($icon) {
-		$icon.removeClass('fa-check');
-		$icon.addClass('fa-times');
-		$icon.removeClass('checked');
-	}
-
-	function check($icon) {
-		$icon.removeClass('fa-times');
-		$icon.addClass('fa-check');
-		$icon.addClass('checked');
-	}
-
-	function save_skills(list) {
-		$.ajax({
-			url: '/save_skills/',
-			type: 'GET',
-			data: {
-				skills: JSON.stringify(list)
-			}
-		});
-	}
-
+    setInterval(function() {
+        refetch();
+    }, 10 * 60 * 1000);
 });

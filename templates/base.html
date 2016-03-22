@@ -9,6 +9,7 @@
         <link rel="stylesheet" href="{% static 'font-awesome/css/font-awesome.min.css' %}">
         <script src="{% static 'js/jquery.min.js' %}"></script>
         <script src="{% static 'js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'js/d3.min.js' %}"></script>
         <script src="{% static 'js/color.js' %}"></script>
         <script>
             var USERNAME = "{{ user_login.name }}";
@@ -17,8 +18,8 @@
         </style>
     </head>
     <body>
-        <div class="navbar navbar-static-top navbar-default">
-            <div class="container-fluid bg-info">
+        <div class="navbar navbar-static-top">
+            <div class="container-fluid">
                 <div class="navbar-header">
                     <a class="navbar-brand" href="/home">TMS</a>
                 </div>
@@ -33,5 +34,6 @@
         </div>
         {% block content %}
         {% endblock %}
+        <script src="{% static 'js/radar.js' %}"></script>
     </body>
 </html>

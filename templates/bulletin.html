@@ -7,7 +7,12 @@
     }
 
     .desc {
-        max-height: 45vh;
+        max-height: 20vh;
+        overflow-y: auto;
+    }
+
+    .userlist {
+        max-height: 80vh;
         overflow-y: auto;
     }
 
@@ -21,19 +26,61 @@
         transform: scale(.9);
         -webkit-transform: scale(.9);
     }
+    
+    text {
+        font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    }
+
+    table.dataTable thead th {
+    position: relative;
+    background-image: none !important;
+}
+ 
+table.dataTable thead th.sorting:after,
+table.dataTable thead th.sorting_asc:after,
+table.dataTable thead th.sorting_desc:after {
+    position: absolute;
+    top: 12px;
+    right: 8px;
+    display: block;
+    font-family: FontAwesome;
+}
+
+table.dataTable thead th.sorting:after {
+    content: "\f0dc";
+    color: #ddd;
+    font-size: 0.8em;
+    padding-top: 0.12em;
+}
+table.dataTable thead th.sorting_asc:after {
+    content: "\f0de";
+}
+table.dataTable thead th.sorting_desc:after {
+    content: "\f0dd";
+}
 
 </style>
+<link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-2">
             <ul class="list-group">
-                <li class="list-group-item list-group-item-info">Your Skills</li>
-                {% for skill in yskills %}
-                <li class="list-group-item">{{skill}}</li>
+                <li class="list-group-item active">Skills Required</li>
+                {% for skill in task.skills %}
+                <li class="list-group-item">
+                    {{skill.name}}
+                    {% for lvl in skill.level %}
+                        {% if lvl == 1 %}
+                        <i class="ralign fa fa-star"></i>
+                        {% else %}
+                        <i class="ralign fa fa-star-o"></i>
+                        {% endif %}
+                    {% endfor %}
+                </li>
                 {% endfor %}
             </ul>
-            <div class="panel panel-info">
-                <div class="panel-heading">{{ name }}</div>
+            <div class="panel panel-primary">
+                <div class="panel-heading">{{ course }}</div>
                 <div class="panel-heading">{{ task.title }}</div>
                 <div class="panel-body">
                     <p class="desc">{{task.description}}</p>
@@ -43,34 +90,39 @@
             </div>
         </div>
         <div class="col-md-8">
-            <div class="panel panel-info">
+            <div class="panel panel-primary">
                 <div class="panel-heading">Postings</div>
-                <div class="panel-heading"><span id="back"><i class="fa fa-chevron-left"></i>&nbsp;<span class="inner">{{ name }}</span></span></div>
                 <div class="panel-body">
-                    <div id="chartcontainer">
-                    </div>
+                    <table id="userlist" class="table table-hover table-condensed">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                {% for skill in skills %}
+                                <th>{{ skill }}</th>
+                                {% endfor %}
+                                <th>Repu</th>
+                            </tr>
+                        </thead>
+                    </table>
                 </div>
             </div>
         </div>
         <div class="col-md-2">
             <ul class="list-group group">
-                <li class="list-group-item list-group-item-info">Group</li>
+                <li class="list-group-item active">Group</li>
                 <li class="list-group-item list-group-item-success footer">
                     Variance: <span id="groupvar">0.0</span>
                 </li>
-                <a class="list-group-item list-group-item-info">Submit</a>
+                <a class="list-group-item active">Submit</a>
             </ul>
         </div>
     </div>
 </div>
-<script src="{% static 'js/d3.min.js' %}"></script>
-<script type="text/javascript">
-    var course_name = "{{ name }}";
+<script src="{% static 'js/datatables.min.js' %}"></script>
+<script>
+    var coursename = "{{ course }}";
+    var taskname = "{{ task.title }}";
 </script>
-<style>
-    text {
-        font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-    }
-</style>
 <script src="{% static 'js/bulletin.js' %}"></script>
 {% endblock %}

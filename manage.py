@@ -1,4 +1,4 @@
-#!C:\Python34\python
+#!..\venv\Scripts\python
 import os
 import sys
 
