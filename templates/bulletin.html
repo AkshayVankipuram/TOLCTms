@@ -63,21 +63,10 @@ table.dataTable thead th.sorting_desc:after {
 <link rel="stylesheet" href="{% static 'css/datatables.min.css' %}">
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-2">
+        <div class="col-md-3">
             <ul class="list-group">
                 <li class="list-group-item active">Skills Required</li>
-                {% for skill in task.skills %}
-                <li class="list-group-item">
-                    {{skill.name}}
-                    {% for lvl in skill.level %}
-                        {% if lvl == 1 %}
-                        <i class="ralign fa fa-star"></i>
-                        {% else %}
-                        <i class="ralign fa fa-star-o"></i>
-                        {% endif %}
-                    {% endfor %}
-                </li>
-                {% endfor %}
+                <li class="list-group-item" id="radarchart"></li>
             </ul>
             <div class="panel panel-primary">
                 <div class="panel-heading">{{ course }}</div>
@@ -89,7 +78,7 @@ table.dataTable thead th.sorting_desc:after {
                 </div>
             </div>
         </div>
-        <div class="col-md-8">
+        <div class="col-md-7">
             <div class="panel panel-primary">
                 <div class="panel-heading">Postings</div>
                 <div class="panel-body">

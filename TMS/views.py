@@ -91,6 +91,16 @@ def bulletin(request):
     else:
         return redirect('/')
 
+def chart_data(request):
+    usernames = json.loads(request.GET.get('users', '[]'))
+
+    ous = [models.TMSUser.objects.get(user=request.user)] + \
+            [models.TMSUser.get_user(uname.lower()) for uname in usernames]
+    def get_skill(cu):
+        return [{'axis': s.name.encode('ascii'), 'value': s.level / 5.0} for s in cu.skills.all()]
+
+    return JsonResponse([get_skill(cu) for cu in ous], safe=False)
+
 def table_data(request):
     c = request.GET.get('course', '')
     t = request.GET.get('task', '')
