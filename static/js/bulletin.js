@@ -33,14 +33,33 @@ $(function () {
     $('#userlist tbody').on('click', 'tr', function() {
         var d = table.row(this).data();
         if($(this).hasClass('bg-info')) {
-            currentUList.splice(currentUList.indexOf(d[0]), 1);
-            $(this).removeClass('bg-info');
+            selectRow($(this), d[0]);
         } else {
-            currentUList.push(d[0]);
-            $(this).addClass('bg-info');
+            unselectRow($(this), d[0]);
         }
-        getDataDrawRadar(currentUList);
     });
+
+    $(document).on('click', '.remove', function() {
+    });
+
+    function selectRow(select, v) {
+        currentUList.splice(currentUList.indexOf(v), 1);
+        select.removeClass('bg-info');
+        $('#'+v).remove();
+        getDataDrawRadar(currentUList);
+    }
+
+    function unselectRow(select, v) {
+        currentUList.push(v);
+        select.addClass('bg-info');
+        $("<a>")
+            .addClass("list-group-item")
+            .addClass("remove")
+            .attr('id', v)
+            .text(v)
+                .insertBefore(".group .footer");
+        getDataDrawRadar(currentUList);
+    }
 
     function getDataDrawRadar(ulist) {
         $.ajax({
