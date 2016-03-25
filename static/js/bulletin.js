@@ -83,10 +83,11 @@ $(function () {
                 levels: 6,
                 opacityArea: 0.3,
                 ExtraWidthX: radarw * .1,
-                ExtraWidthY: 0,
+                ExtraWidthY: radarh * .1,
                 TranslateX: radarw * .1,
-                TranslateY: 0
+                TranslateY: radarh * .1
             };
+        $("#radarchart").height(radarh * 1.2);
         RadarChart.draw("#radarchart", data, mcfg);
     }
 

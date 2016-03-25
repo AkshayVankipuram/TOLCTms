@@ -28,6 +28,8 @@ $(function() {
         selectable: true,
         selectHelper: true,
         select: function(start, end, js, v, res) {
+            if(res !== undefined && res.editable) {
+            }
             calContainer.fullCalendar('unselect');
         },
         editable: true,
