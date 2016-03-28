@@ -53,6 +53,8 @@ $(function () {
     }
 
     function selectRow(select, v) {
+        if(currentUList.length == 5)
+            return;
         currentUList.push(v);
         select.addClass('bg-info');
         select.addClass('row_'+v);
