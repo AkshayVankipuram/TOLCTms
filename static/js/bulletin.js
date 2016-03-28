@@ -33,30 +33,34 @@ $(function () {
     $('#userlist tbody').on('click', 'tr', function() {
         var d = table.row(this).data();
         if($(this).hasClass('bg-info')) {
-            selectRow($(this), d[0]);
-        } else {
             unselectRow($(this), d[0]);
+        } else {
+            selectRow($(this), d[0]);
         }
     });
 
-    $(document).on('click', '.remove', function() {
+    $(document).on('click', '.remove i', function() {
+        var id = $(this).parent().attr('id');
+        $('.row_'+id).removeClass('bg-info');
+        $(this).parent().remove();
     });
 
-    function selectRow(select, v) {
+    function unselectRow(select, v) {
         currentUList.splice(currentUList.indexOf(v), 1);
         select.removeClass('bg-info');
         $('#'+v).remove();
         getDataDrawRadar(currentUList);
     }
 
-    function unselectRow(select, v) {
+    function selectRow(select, v) {
         currentUList.push(v);
         select.addClass('bg-info');
-        $("<a>")
+        select.addClass('row_'+v);
+        $("<li>")
             .addClass("list-group-item")
             .addClass("remove")
             .attr('id', v)
-            .text(v)
+            .html(v + "<i class='ralign fa fa-times' style='cursor: pointer'></i>")
                 .insertBefore(".group .footer");
         getDataDrawRadar(currentUList);
     }
