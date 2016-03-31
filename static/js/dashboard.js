@@ -29,6 +29,23 @@ $(function() {
         selectHelper: true,
         select: function(start, end, js, v, res) {
             if(res !== undefined && res.editable) {
+                createModal(
+                    $("<h3>").text("New Event"),
+                    $("<div>").addClass("form-group")
+                        .append("<p hidden id='eresid'>"+res.id+"</p>")
+                        .append("<p hidden id='estart'>"+start.toISOString()+"</p>")
+                        .append("<p hidden id='eend'>"+end.toISOString()+"</p>")
+                        .append($("<code>").text(start.toString()))
+                        .append("<br>")
+                        .append($("<code>").text(end.toString()))
+                        .append("<br>")
+                        .append($("<label>").attr("for", "etitle").text("Title"))
+                        .append($("<input>").attr("id", "etitle").addClass("form-control"))
+                        .append("<br>")
+                        .append($("<label>").attr("for", "edesc").text("Description"))
+                        .append($("<textarea>").attr("id", "edesc").addClass("form-control")), 
+                    $("<button>").addClass("btn btn-default").attr("id","esubmit").text("Submit")
+                );
             }
             calContainer.fullCalendar('unselect');
         },
@@ -39,6 +56,16 @@ $(function() {
         eventResize: function(ce, d, rf) {
         },
         eventClick: function(ce, js, v) {
+            var div = $("<div>");
+            var strs = ce.description.split(".");
+            for(var i in strs) {
+                div.append($("<p>").text(strs[i]));
+            }
+            createModal(
+                    $("<h3>").text(ce.title),
+                    div,
+                    ""
+            );
         },
         eventRender: function(ce, js, v) {
         },
@@ -66,4 +93,25 @@ $(function() {
     setInterval(function() {
         refetch();
     }, 10 * 60 * 1000);
+
+    
+    function createModal(title, body, footer) {
+        var tmpl = $("#modalTmpl");
+        $(".mh", tmpl).html(title);
+        $(".mb", tmpl).html(body);
+        $(".mf", tmpl).html(footer);
+        tmpl.modal("show");
+    }
+
+    $(document).on("click", "#esubmit", function() {
+        calContainer.fullCalendar("renderEvent", {
+            title: $("#etitle").val(),
+            description: $("#edesc").val(),
+            resourceId: $("#eresid").text(),
+            start: $("#estart").text(),
+            end: $("#eend").text()
+        }, true);
+        $("#modalTmpl").modal("hide");
+    });
+
 });
