@@ -87,6 +87,13 @@ def bulletin(request):
             skill['level'] = (v * [1]) + ((5 - v) * [0])
         u = models.TMSUser.objects.get(user=request.user)
         context['skills'] = [s.name[:min(4, len(s.name))].capitalize() for s in u.skills.all()]
+        sv = [round(s.level, 2) for s in u.skills.all()]
+        context['skill_avg'] = sum(sv) / len(sv)
+        context['user_login'] = {
+            'url': '/logout',
+            'msg': 'Logout',
+            'name': request.user.username
+        }
         return render(request, 'bulletin.html', context)
     else:
         return redirect('/')

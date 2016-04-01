@@ -29,13 +29,41 @@ $(function () {
 	$(table.column(9).nodes()).addClass("bg-success");
   
     var currentUList = [];
+    
+    var mapUV = { };
+    
+   $("#groupvar").text(Math.round(getVariance([skillavg]) * 100) / 100);
 
     $('#userlist tbody').on('click', 'tr', function() {
         var d = table.row(this).data();
         if($(this).hasClass('bg-info')) {
-            unselectRow($(this), d[0]);
+            unselectRow($(this), d);
         } else {
-            selectRow($(this), d[0]);
+            selectRow($(this), d);
+        }
+
+        if(currentUList.length > 0) {
+            var current = [skillavg];
+            for(var u in mapUV) {
+                current.push(mapUV[u]);
+            }
+            var variance = getVariance(current);
+            $("#groupvar").text(Math.round(variance * 100) / 100);
+            
+            if(!$(this).hasClass('bg-info')) {
+                if(variance >= 0.2 && variance < 0.4) {
+                    $("#notifications").append($("<li>")
+                        .addClass("list-group-item list-group-item-danger")
+                        .text("Try to raise it a bit"));
+                } else if(variance >= 0 && variance  < 0.2) {
+                    $("#notifications").append($("<li>")
+                        .addClass("list-group-item list-group-item-danger")
+                        .text("Very low"));
+                }
+            }
+        
+        } else {
+            $("#groupvar").text(0.0);
         }
     });
 
@@ -45,16 +73,20 @@ $(function () {
         $(this).parent().remove();
     });
 
-    function unselectRow(select, v) {
+    function unselectRow(select, d) {
+        var v = d[0];
+        delete mapUV[v];
         currentUList.splice(currentUList.indexOf(v), 1);
         select.removeClass('bg-info');
         $('#'+v).remove();
         getDataDrawRadar(currentUList);
     }
 
-    function selectRow(select, v) {
-        if(currentUList.length == 5)
+    function selectRow(select, d) {
+        var v = d[0];
+        if(currentUList.length == 3)
             return;
+        mapUV[v] = getAverage(d.slice(2, 10));
         currentUList.push(v);
         select.addClass('bg-info');
         select.addClass('row_'+v);
@@ -63,8 +95,25 @@ $(function () {
             .addClass("remove")
             .attr('id', v)
             .html(v + "<i class='ralign fa fa-times' style='cursor: pointer'></i>")
-                .insertBefore(".group .footer");
+                .insertAfter("#litem_me");
         getDataDrawRadar(currentUList);
+    }
+
+    function getAverage(values) {
+        if(values.length == 0)
+            return 0;
+        var sum = 0;
+        for(var i in values)
+            sum += values[i];
+        return sum / values.length;
+    }
+
+    function getVariance(scores) {
+        var avg = getAverage(scores);
+        var devsum = 0;
+        for(var s in scores) 
+            devsum += Math.pow(scores[s] - avg, 2);
+        return devsum / scores.length;
     }
 
     function getDataDrawRadar(ulist) {
