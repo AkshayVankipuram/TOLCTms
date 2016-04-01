@@ -50,7 +50,7 @@ $(function () {
             var variance = getVariance(current);
             $("#groupvar").text(Math.round(variance * 100) / 100);
             
-            if(!$(this).hasClass('bg-info')) {
+            if($(this).hasClass('bg-info')) {
                 if(variance >= 0.2 && variance < 0.4) {
                     $("#notifications").append($("<li>")
                         .addClass("list-group-item list-group-item-danger")
