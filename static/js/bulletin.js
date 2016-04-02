@@ -20,8 +20,11 @@ $(function () {
 				return ret;
 			}
 
+            var v = $("#userlist").parents('.panel-body').width() * .8;
 			for(var i = 2; i <= 8; i++) {
-				$("td:eq("+i+")", row).html(stars(data[i]));
+				//$("td:eq("+i+")", row).html(stars(data[i]));
+                $("td:eq("+i+")", row)
+                    .html('<progress style="max-width: '+(v / data.length)+'px" max="5.0" value="'+data[i]+'"></progress>');
 			}
 		}
 	});
@@ -71,6 +74,9 @@ $(function () {
         var id = $(this).parent().attr('id');
         $('.row_'+id).removeClass('bg-info');
         $(this).parent().remove();
+        delete mapUV[id];
+        currentUList.splice(currentUList.indexOf(id), 1);
+        getDataDrawRadar(currentUList);
     });
 
     function unselectRow(select, d) {
@@ -120,7 +126,7 @@ $(function () {
         $.ajax({
             url: '/chart_data/',
             type: 'get',
-            data: { users: JSON.stringify(ulist) },
+            data: { users: JSON.stringify(ulist), task: taskname },
             success: drawRadar
         });
     }

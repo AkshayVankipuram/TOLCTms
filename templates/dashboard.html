@@ -28,7 +28,8 @@
                         <li class="list-group-item active">Skills</li>
                         {% for skill in skills  %}
                         <li class="list-group-item">
-                            {{skill.name}}&nbsp;<code class="ralign"><span  id="rating_{{skill.id}}">{{skill.rating}}</span></code><br><input type="range" id="slider_{{skill.id}}" class="lvl" value={{skill.rating}} step="0.1" min="0.0" max="5.0">
+                            {{skill.name}}<progress class="ralign" max="5.0" value="{{skill.rating}}"></progress>
+                            <!--<input type="range" id="slider_{{skill.id}}" class="lvl" value={{skill.rating}} step="0.1" min="0.0" max="5.0">-->
                         </li>
                         {% endfor %}
                     </ul> 
@@ -42,10 +43,10 @@
             </div>
         </div>
         <div class="col-md-2">
-            <ul class="list-group">
-                <li class="list-group-item active">To Group</li>
+            <ul class="list-group" id="goto">
+                <li class="list-group-item active">Links</li>
                 {% for n in notifications %}
-                <a href="/bulletin/?course={{n.owner}}&task={{n.title}}" class="list-group-item list-group-item-warning">
+                <a href="/bulletin/?course={{n.owner}}&task={{n.title}}" class="list-group-item list-group-item-warning notify">
                 {{n.title}}<i class="ralign fa fa-users"></i>
                 </a>
                 {% endfor %}

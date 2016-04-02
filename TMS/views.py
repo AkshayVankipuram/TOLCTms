@@ -75,6 +75,7 @@ def bulletin(request):
 
     u = models.TMSUser.objects.get(user=request.user)
     task = models.Task.objects.get(title=t)
+    task_skills = [ts.name for ts in task.skills.all()]
     group_formed = u.groups.filter(task=task).all()
 
     if not group_formed:
@@ -86,7 +87,7 @@ def bulletin(request):
                 v = int(skill['level'])
             skill['level'] = (v * [1]) + ((5 - v) * [0])
         u = models.TMSUser.objects.get(user=request.user)
-        context['skills'] = [s.name[:min(4, len(s.name))].capitalize() for s in u.skills.all()]
+        context['skills'] = [s.name[:min(4, len(s.name))].capitalize() for s in u.skills.filter(name__in=task_skills).all()]
         sv = [round(s.level, 2) for s in u.skills.all()]
         context['skill_avg'] = sum(sv) / len(sv)
         context['user_login'] = {
@@ -100,11 +101,15 @@ def bulletin(request):
 
 def chart_data(request):
     usernames = json.loads(request.GET.get('users', '[]'))
+    t = request.GET.get('task', '')
+
+    task = models.Task.objects.get(title=t)
+    task_skills = [ts.name for ts in task.skills.all()]
 
     ous = [models.TMSUser.objects.get(user=request.user)] + \
             [models.TMSUser.get_user(uname.lower()) for uname in usernames]
     def get_skill(cu):
-        return [{'axis': s.name.encode('ascii'), 'value': s.level / 5.0} for s in cu.skills.all()]
+        return [{'axis': s.name, 'value': s.level / 5.0} for s in cu.skills.filter(name__in=task_skills).all()]
 
     return JsonResponse([get_skill(cu) for cu in ous], safe=False)
 
@@ -115,10 +120,11 @@ def table_data(request):
     course = models.Course.objects.get(title=c)
     context = { 'data' : [] }
     task = models.Task.objects.get(title=t)
+    task_skills = [ts.name for ts in task.skills.all()]
     for u in course.students.exclude(user=request.user).all():
         g = u.groups.filter(task=task)
         if not g:
-            skill_vals = [round(s.level, 2) for s in u.skills.all()]
+            skill_vals = [round(s.level, 2) for s in u.skills.filter(name__in=task_skills).all()]
             context['data'].append([
                     u.get_username().capitalize(),
                     u.user.email] +

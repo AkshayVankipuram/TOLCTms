@@ -28,23 +28,31 @@ $(function() {
         selectable: true,
         selectHelper: true,
         select: function(start, end, js, v, res) {
-            if(res !== undefined && res.editable) {
+            if(res === undefined || (res !== undefined && res.editable)) {
+                var form = $("<div>").attr('role', "form");
                 createModal(
                     $("<h3>").text("New Event"),
-                    $("<div>").addClass("form-group")
-                        .append("<p hidden id='eresid'>"+res.id+"</p>")
+                    form.append("<p hidden id='eresid'>"+USERNAME+"</p>")
                         .append("<p hidden id='estart'>"+start.toISOString()+"</p>")
                         .append("<p hidden id='eend'>"+end.toISOString()+"</p>")
                         .append($("<code>").text(start.toString()))
                         .append("<br>")
                         .append($("<code>").text(end.toString()))
                         .append("<br>")
-                        .append($("<label>").attr("for", "etitle").text("Title"))
-                        .append($("<input>").attr("id", "etitle").addClass("form-control"))
-                        .append("<br>")
-                        .append($("<label>").attr("for", "edesc").text("Description"))
-                        .append($("<textarea>").attr("id", "edesc").addClass("form-control")), 
-                    $("<button>").addClass("btn btn-default").attr("id","esubmit").text("Submit")
+                        .append($("<div>").addClass("form-group")
+                            .append($("<label>").attr("for", "etitle").text("Title"))
+                            .append($("<input>")
+                                .attr("id", "etitle")
+                                .addClass("form-control")))
+                        .append($("<div>").addClass("form-group")
+                            .append($("<label>").attr("for", "edesc").text("Description"))
+                            .append($("<textarea>")
+                                .css('resize','none')
+                                .attr("id", "edesc")
+                                .attr('rows', 5)
+                                .addClass("form-control")))
+                        .append($("<button>").addClass("btn btn-default").attr('type', 'submit').attr("id","esubmit").text("Submit")),
+                    ""
                 );
             }
             calContainer.fullCalendar('unselect');
@@ -56,16 +64,27 @@ $(function() {
         eventResize: function(ce, d, rf) {
         },
         eventClick: function(ce, js, v) {
-            var div = $("<div>");
-            var strs = ce.description.split(".");
-            for(var i in strs) {
-                div.append($("<p>").text(strs[i]));
+            if(ce.completed === undefined || !ce.completed) {
+                var div = $("<div>");
+                var strs = ce.description.split(".");
+                for(var i in strs) {
+                    div.append($("<p>").text(strs[i]));
+                }
+                createModal(
+                        $("<h3>").text(ce.title),
+                        div,
+                        $("<button>").addClass("btn btn-default").html("Completed").on('click', function() {
+                            ce.color = colorvalues.greens[3];
+                            ce.completed = true;
+                            calContainer.fullCalendar("updateEvent", ce);
+                            $('#goto').append($('<a>')
+                                .addClass('list-group-item list-group-item-success feedback')
+                                .html(ce.title + '<i class="ralign fa fa-comment"></i>')
+                                .attr('href', '/feedback/'));
+                            $("#modalTmpl").modal("hide");
+                        })
+                );
             }
-            createModal(
-                    $("<h3>").text(ce.title),
-                    div,
-                    ""
-            );
         },
         eventRender: function(ce, js, v) {
         },
