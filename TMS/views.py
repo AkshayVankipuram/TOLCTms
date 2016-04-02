@@ -109,7 +109,8 @@ def chart_data(request):
     ous = [models.TMSUser.objects.get(user=request.user)] + \
             [models.TMSUser.get_user(uname.lower()) for uname in usernames]
     def get_skill(cu):
-        return [{'axis': s.name, 'value': s.level / 5.0} for s in cu.skills.filter(name__in=task_skills).all()]
+        return [{'axis': s.name, 'value': s.level / 5.0} for s in cu.skills.filter(name__in=task_skills).all()] + \
+            [{'axis': 'reputation', 'value': maprange((0.0, 100.0),(0.0, 1.0),cu.reputation)}]
 
     return JsonResponse([get_skill(cu) for cu in ous], safe=False)
 
@@ -129,10 +130,14 @@ def table_data(request):
                     u.get_username().capitalize(),
                     u.user.email] +
                     skill_vals + [
-                    u.reputation
+                    maprange((0.0, 100.0),(0.0, 5.0),u.reputation)
                  ])
 
     return JsonResponse(context)
+
+def maprange(a, b, s):
+    (a1, a2), (b1, b2) = a, b
+    return  b1 + ((s - a1) * (b2 - b1) / (a2 - a1))
 
 def event_stream(request):
     u = models.TMSUser.objects.get(user=request.user)
