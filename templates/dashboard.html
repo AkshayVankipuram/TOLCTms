@@ -22,19 +22,12 @@
     <div class="row">
         <div class="col-md-2">
             <div class="panel panel-primary">
-                <div class="panel-heading">Preferences</div>
-                <div class="panel-body">
-                    <ul class="list-group" id="skill_select">
-                        <li class="list-group-item active">Skills</li>
-                        {% for skill in skills  %}
-                        <li class="list-group-item">
-                            {{skill.name}}<progress class="ralign" max="5.0" value="{{skill.rating}}"></progress>
-                            <!--<input type="range" id="slider_{{skill.id}}" class="lvl" value={{skill.rating}} step="0.1" min="0.0" max="5.0">-->
-                        </li>
-                        {% endfor %}
-                    </ul> 
-                </div>
+                <div class="panel-heading">Skills</div>
+                <div class="panel-body" id="radarchart"></div>
             </div>
+            <ul class="list-group" id="suggested">
+                <li class="list-group-item active">Suggested Tasks</li>
+            </ul>
         </div>
         <div class="col-md-8">
             <div class="panel panel-primary">

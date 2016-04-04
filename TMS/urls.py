@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'^event_stream/$', views.event_stream, name="event_stream"),
     url(r'^resource_stream/$', views.resource_stream, name="resource_stream"),
     url(r'^feedback/', views.feedback, name="feedback"),
+    url(r'^get_skill_breakdown/', views.get_skill_breakdown, name="get_skill_breakdown"),
     url(r'^save_skills/', views.save_skills, name="save_skills"),
     url(r'^save_event/$', views.save_event, name="save_event"),
 ]

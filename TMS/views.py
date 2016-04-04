@@ -100,19 +100,24 @@ def bulletin(request):
         return redirect('/')
 
 def chart_data(request):
-    usernames = json.loads(request.GET.get('users', '[]'))
-    t = request.GET.get('task', '')
+    tp = request.GET.get('tp', 'task')
+    if tp == 'task':
+        usernames = json.loads(request.GET.get('users', '[]'))
+        t = request.GET.get('task', '')
+        task = models.Task.objects.get(title=t)
+        task_skills = [ts.name for ts in task.skills.all()]
 
-    task = models.Task.objects.get(title=t)
-    task_skills = [ts.name for ts in task.skills.all()]
+        ous = [models.TMSUser.objects.get(user=request.user)] + \
+                [models.TMSUser.get_user(uname.lower()) for uname in usernames]
+        def get_skill(cu):
+            return [{'axis': s.name, 'value': s.level / 5.0} for s in cu.skills.filter(name__in=task_skills).all()] + \
+                [{'axis': 'reputation', 'value': maprange((0.0, 100.0),(0.0, 1.0),cu.reputation)}]
 
-    ous = [models.TMSUser.objects.get(user=request.user)] + \
-            [models.TMSUser.get_user(uname.lower()) for uname in usernames]
-    def get_skill(cu):
-        return [{'axis': s.name, 'value': s.level / 5.0} for s in cu.skills.filter(name__in=task_skills).all()] + \
-            [{'axis': 'reputation', 'value': maprange((0.0, 100.0),(0.0, 1.0),cu.reputation)}]
-
-    return JsonResponse([get_skill(cu) for cu in ous], safe=False)
+        return JsonResponse([get_skill(cu) for cu in ous], safe=False)
+    else:
+        u = models.TMSUser.objects.get(user=request.user)
+        return JsonResponse([{'axis': s.name, 'value': s.level / 5.0} for s in u.skills.all()] + \
+                [{'axis': 'reputation', 'value': maprange((0.0, 100.0),(0.0, 1.0),u.reputation)}], safe=False)
 
 def table_data(request):
     c = request.GET.get('course', '')
@@ -134,6 +139,20 @@ def table_data(request):
                  ])
 
     return JsonResponse(context)
+
+
+def get_skill_breakdown(request):
+    u = models.TMSUser.objects.get(user=request.user)
+
+    context = {}
+    for group in u.groups.all():
+        context[group.task.title] = [child.to_json() for child in group.task.children.all()] + [{
+                'title': 'Test Task',
+                'description': 'Some stuff'
+            }]
+
+    return JsonResponse(context)
+
 
 def maprange(a, b, s):
     (a1, a2), (b1, b2) = a, b

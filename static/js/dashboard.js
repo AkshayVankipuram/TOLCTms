@@ -20,11 +20,17 @@ $(function() {
         header: {
             left: 'today prev,next',
             center: 'title',
-            right: 'timelineDay,timelineWeek,month'
+            right: 'timelineWeek,month'
         },
         defaultView: 'timelineWeek',
         allDayDefault: false,
         businessHours: false,
+        droppable: true,
+        drop: function(d, j, u, r) {
+            if(r != USERNAME) 
+                return false;
+            $(this).remove();
+        },
         selectable: true,
         selectHelper: true,
         select: function(start, end, js, v, res) {
@@ -131,6 +137,66 @@ $(function() {
             end: $("#eend").text()
         }, true);
         $("#modalTmpl").modal("hide");
+    });
+    
+    function drawRadar(data) {
+        var radarw = $("#radarchart").width() * .8,
+            radarh = radarw,
+            mcfg = {
+                radius: 5,
+                w: radarw,
+                h: radarh,
+                factorLegend: .4,
+                ToRight: 0,
+                maxValue: 1.0,
+                levels: 6,
+                opacityArea: 0.3,
+                ExtraWidthX: radarw * .1,
+                ExtraWidthY: radarh * .1,
+                TranslateX: radarw * .1,
+                TranslateY: radarh * .1
+            };
+        $("#radarchart").height(radarh * 1.2);
+        RadarChart.draw("#radarchart", [data], mcfg);
+    }
+
+    $.ajax({
+        url: '/chart_data/',
+        type: 'get',
+        data: { tp: 'useronly' },
+        success: drawRadar
+    });
+
+    function setupTaskBreakdown(data) {
+        var root = $("#suggested");
+        for(var task in data) {
+            root.append($("<li>")
+                    .addClass("list-group-item list-group-item-info")
+                    .text(task));
+            var li = $("<li>").addClass("list-group-item");
+            $.each(data[task], function(idx, v) {
+                li.append($("<div>")
+                    .addClass("fc-event")
+                    .text(v.title)
+                    .data('event', {
+                        title: v.title,
+                        description: v.description,
+                        sticky: true
+                    })
+                    .draggable({
+                        zIndex: 999,
+                        revert: true,
+                        revertDuration: 5
+                    }));
+            });
+            root.append(li);
+        }
+    }
+
+    $.ajax({
+        url: '/get_skill_breakdown/',
+        type: 'get',
+        success: setupTaskBreakdown
     });
 
 });
