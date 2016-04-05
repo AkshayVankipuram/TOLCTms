@@ -88,7 +88,8 @@ def bulletin(request):
             skill['level'] = (v * [1]) + ((5 - v) * [0])
         u = models.TMSUser.objects.get(user=request.user)
         context['skill_names'] = [s.name[:min(4, len(s.name))].capitalize() for s in u.skills.filter(name__in=task_skills).all()]
-        context['skill_vals'] = [s.level for s in u.skills.filter(name__in=task_skills).all()]
+        context['skill_vals'] = [s.level for s in u.skills.filter(name__in=task_skills).all()] + \
+                [maprange((0.0, 100.0),(0.0, 5.0),u.reputation)]
         context['user_login'] = {
             'url': '/logout',
             'msg': 'Logout',

@@ -47,7 +47,7 @@ $(function () {
 
         return newArr;
     }
-    
+
     $('#userlist tbody').on('click', 'tr', function() {
         var d = table.row(this).data();
         if($(this).hasClass('bg-info')) {
@@ -68,7 +68,7 @@ $(function () {
                 current.push(inner);
             }
 
-            var variance = getVariance(transpose(current));
+            var variance = getVariance(transpose(current, s));
             $("#groupvar").text(Math.round(variance * 100) / 100);
             
             if($(this).hasClass('bg-info')) {

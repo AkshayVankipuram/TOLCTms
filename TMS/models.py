@@ -90,7 +90,6 @@ class Course(models.Model):
             ret.append(task.to_json())
         return ret
 
-
 class Task(models.Model):
     parent = models.ForeignKey('self', null=True, related_name="children")
     title = models.CharField(max_length=20)
