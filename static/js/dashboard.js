@@ -26,9 +26,7 @@ $(function() {
         allDayDefault: false,
         businessHours: false,
         droppable: true,
-        drop: function(d, j, u, r) {
-            if(r != USERNAME) 
-                return false;
+        drop: function(date, j, u, r) {
             $(this).remove();
         },
         selectable: true,
@@ -66,13 +64,19 @@ $(function() {
         editable: true,
         eventLimit: true,
         eventDrop: function(ce, d, rf) {
+            if(ce.resourceId != USERNAME) {
+                rf();
+            }
         },
         eventResize: function(ce, d, rf) {
         },
         eventClick: function(ce, js, v) {
             if(ce.completed === undefined || !ce.completed) {
                 var div = $("<div>");
-                var strs = ce.description.split(".");
+                var strs = ['This is a sub task'];
+                if(ce.description !== undefined) {
+                    strs = ce.description.split(".");
+                }
                 for(var i in strs) {
                     div.append($("<p>").text(strs[i]));
                 }
@@ -93,6 +97,7 @@ $(function() {
             }
         },
         eventRender: function(ce, js, v) {
+            
         },
         resourceLabelText: 'Courses',
         resourceAreaWidth: '15%',
@@ -178,15 +183,11 @@ $(function() {
                 li.append($("<div>")
                     .addClass("fc-event")
                     .text(v.title)
-                    .data('event', {
-                        title: v.title,
-                        description: v.description,
-                        sticky: true
-                    })
+                    .data('event', v)
                     .draggable({
                         zIndex: 999,
                         revert: true,
-                        revertDuration: 5
+                        revertDuration: 10
                     }));
             });
             root.append(li);

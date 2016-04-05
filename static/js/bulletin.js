@@ -12,19 +12,18 @@ $(function () {
 			function stars(v) {
 				var ret = '';
 				for(var i = 0; i < Math.round(v); i++) {
-					ret += '<i class="fa fa-star"></i>';
+					ret += '<i class="fa fa-star text-primary"></i>';
 				}
 				for(var i = Math.round(v); i < 5; i++) {
-					ret += '<i class="fa fa-star-o"></i>';
+					ret += '<i class="fa fa-star-o text-primary"></i>';
 				}
 				return ret;
 			}
 
             var v = $("#userlist").parents('.panel-body').width() * .8;
 			for(var i = 2; i <= 8; i++) {
-				//$("td:eq("+i+")", row).html(stars(data[i]));
-                $("td:eq("+i+")", row)
-                    .html('<progress style="max-width: '+(v / data.length)+'px" max="5.0" value="'+data[i]+'"></progress>');
+				$("td:eq("+i+")", row).html(stars(data[i]));
+                //$("td:eq("+i+")", row).html('<progress style="max-width: '+(v / data.length)+'px" max="5.0" value="'+data[i]+'"></progress>');
 			}
 		}
 	});
@@ -34,9 +33,21 @@ $(function () {
     var currentUList = [];
     
     var mapUV = { };
-    
-   $("#groupvar").text(Math.round(getVariance([skillavg]) * 100) / 100);
 
+    function transpose(arr, inner) {
+        var newArr = [];
+        
+        for(var i = 0; i < inner; i++) {
+            var inarr = [];
+            for(var j = 0; j < arr.length; j++) {
+                inarr.push(arr[j][i]);
+            }
+            newArr.push(inarr);
+        }
+
+        return newArr;
+    }
+    
     $('#userlist tbody').on('click', 'tr', function() {
         var d = table.row(this).data();
         if($(this).hasClass('bg-info')) {
@@ -46,11 +57,18 @@ $(function () {
         }
 
         if(currentUList.length > 0) {
-            var current = [skillavg];
+            var current = [skillvals];
+            var s = 0;
             for(var u in mapUV) {
-                current.push(mapUV[u]);
+                var inner = [];
+                for(var i = 0; i < mapUV[u].length; i++) {
+                    s = mapUV[u].length;
+                    inner[i] = mapUV[u][i];
+                }
+                current.push(inner);
             }
-            var variance = getVariance(current);
+
+            var variance = getVariance(transpose(current));
             $("#groupvar").text(Math.round(variance * 100) / 100);
             
             if($(this).hasClass('bg-info')) {
@@ -92,7 +110,7 @@ $(function () {
         var v = d[0];
         if(currentUList.length == 3)
             return;
-        mapUV[v] = getAverage(d.slice(2, 10));
+        mapUV[v] = d.slice(2, d.length);
         currentUList.push(v);
         select.addClass('bg-info');
         select.addClass('row_'+v);
@@ -115,11 +133,19 @@ $(function () {
     }
 
     function getVariance(scores) {
-        var avg = getAverage(scores);
-        var devsum = 0;
-        for(var s in scores) 
-            devsum += Math.pow(scores[s] - avg, 2);
-        return devsum / scores.length;
+        function _getVariance(values) {
+            var avg = getAverage(values);
+            var devsum = 0;
+            for(var s in values) 
+                devsum += Math.pow(values[s] - avg, 2);
+            return devsum / values.length;
+        }
+
+        var s = 0;
+        for(var i in scores) {
+            s += _getVariance(scores[i]);
+        }
+        return s / scores.length;
     }
 
     function getDataDrawRadar(ulist) {

@@ -87,9 +87,8 @@ def bulletin(request):
                 v = int(skill['level'])
             skill['level'] = (v * [1]) + ((5 - v) * [0])
         u = models.TMSUser.objects.get(user=request.user)
-        context['skills'] = [s.name[:min(4, len(s.name))].capitalize() for s in u.skills.filter(name__in=task_skills).all()]
-        sv = [round(s.level, 2) for s in u.skills.all()]
-        context['skill_avg'] = sum(sv) / len(sv)
+        context['skill_names'] = [s.name[:min(4, len(s.name))].capitalize() for s in u.skills.filter(name__in=task_skills).all()]
+        context['skill_vals'] = [s.level for s in u.skills.filter(name__in=task_skills).all()]
         context['user_login'] = {
             'url': '/logout',
             'msg': 'Logout',
@@ -146,9 +145,16 @@ def get_skill_breakdown(request):
 
     context = {}
     for group in u.groups.all():
-        context[group.task.title] = [child.to_json() for child in group.task.children.all()] + [{
+        context[group.task.title] = [{
+            'title': child.title,
+            'duration': (child.end - child.start).seconds / 3600.0,
+            'stick': True,
+            'resourceID': u.get_username()
+        } for child in group.task.children.all()] + [{
                 'title': 'Test Task',
-                'description': 'Some stuff'
+                'duration': '03:00',
+                'stick': True,
+                'resourceID': u.get_username()
             }]
 
     return JsonResponse(context)
@@ -190,7 +196,7 @@ def resource_stream(request):
                         'id': member.get_username().replace(' ', '_'),
                         'title': member.get_username().capitalize(),
                         'course': course.title,
-                        'editable': editable
+                        'editable': editable,
                     })
             resources.append(obj)
 
