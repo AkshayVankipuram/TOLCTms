@@ -33,7 +33,7 @@ $(function() {
         selectHelper: true,
         select: function(start, end, js, v, res) {
             if(res === undefined || (res !== undefined && res.editable)) {
-                var form = $("<div>").attr('role', "form");
+                /*var form = $("<div>").attr('role', "form");
                 createModal(
                     $("<h3>").text("New Event"),
                     form.append("<p hidden id='eresid'>"+USERNAME+"</p>")
@@ -57,7 +57,7 @@ $(function() {
                                 .addClass("form-control")))
                         .append($("<button>").addClass("btn btn-default").attr('type', 'submit').attr("id","esubmit").text("Submit")),
                     ""
-                );
+                );*/
             }
             calContainer.fullCalendar('unselect');
         },
@@ -72,11 +72,9 @@ $(function() {
         },
         eventClick: function(ce, js, v) {
             if(ce.completed === undefined || !ce.completed) {
-                var div = $("<div>");
-                var strs = ['This is a sub task'];
-                if(ce.description !== undefined) {
-                    strs = ce.description.split(".");
-                }
+                $('#modal
+                /*var div = $("<div>");
+                strs = ce.description.split(".");
                 for(var i in strs) {
                     div.append($("<p>").text(strs[i]));
                 }
@@ -93,7 +91,7 @@ $(function() {
                                 .attr('href', '/feedback/'));
                             $("#modalTmpl").modal("hide");
                         })
-                );
+                );*/
             }
         },
         eventRender: function(ce, js, v) {
@@ -128,7 +126,7 @@ $(function() {
     function createModal(title, body, footer) {
         var tmpl = $("#modalTmpl");
         $(".mh", tmpl).html(title);
-        $(".mb", tmpl).html(body);
+        $(".mb", tmpl).load(body);
         $(".mf", tmpl).html(footer);
         tmpl.modal("show");
     }
@@ -181,7 +179,7 @@ $(function() {
             var li = $("<li>").addClass("list-group-item");
             $.each(data[task], function(idx, v) {
                 li.append($("<div>")
-                    .addClass("fc-event")
+                    .addClass("fc-event extern")
                     .text(v.title)
                     .data('event', v)
                     .draggable({

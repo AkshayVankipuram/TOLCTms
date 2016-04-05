@@ -140,24 +140,26 @@ def table_data(request):
 
     return JsonResponse(context)
 
+def create_form(request):
+    title = request.GET.get('task', '')
+
+    task = models.Task.objects.get(title=title.capitalize())
+
+    return JsonResponse({})
 
 def get_skill_breakdown(request):
     u = models.TMSUser.objects.get(user=request.user)
 
     context = {}
     for group in u.groups.all():
+        duration = (group.task.end - group.task.start).total_seconds() / 3600.0 / 4.0
         context[group.task.title] = [{
             'title': child.title,
-            'duration': (child.end - child.start).seconds / 3600.0,
+            'description': child.description,
+            'duration': '{0}:00'.format(duration),
             'stick': True,
             'resourceID': u.get_username()
-        } for child in group.task.children.all()] + [{
-                'title': 'Test Task',
-                'duration': '03:00',
-                'stick': True,
-                'resourceID': u.get_username()
-            }]
-
+        } for child in group.task.children.all()]
     return JsonResponse(context)
 
 
