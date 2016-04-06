@@ -55,23 +55,38 @@ def home(request):
         'skills': get_skills(u),
         'reputation': u.reputation,
         'colocate': u.colocate,
+        'objectives': get_objectives(u),
         'notifications': get_notifications(u),
-        'objectives': [o.name for o in models.Objectives.objects.all()],
-        'myobjective': u.objective.name,
-        'tasktags': [o.title for o in models.Task.objects.filter(~Q(parent=None) & Q(user_owner=None)).all()]
+        'tasktags': [o.title.encode('ascii') for o in models.Task.objects.filter(~Q(parent=None) & Q(user_owner=None)).all()]
    })
+
+
+def get_objectives(user):
+    ret = {}
+    for c in user.courses.all():
+        m = models.Membership.objects.filter(Q(user=user)&Q(course=c)).all()
+        objs = list(set([me.objective for me in models.Membership.objects.all()]))
+        ret[c.title] = {
+            'myobj': m[0].objective,
+            'objs': [{
+                'name': o,
+                'id': '{0}-{1}'.format(c.title.replace(' ','_'), o)
+                } for o in objs]
+        }
+    return ret
 
 def set_objective(request):
     u = models.TMSUser.objects.get(user=request.user)
+    c = request.GET.get('course', '')
     obj = request.GET.get('objective', '')
-    objective = models.Objectives.objects.get(name=obj)
-    if objective is not None:
-        u.objective = objective
-        u.save()
+    course = models.Course.objects.get(title=c)
+    m = models.Membership.objects.filter(user=u).filter(course=course).all()
+    if m:
+        m.objective = obj
+        m.save()
     return JsonResponse({
             'status': 'OK'
         })
-
 
 def get_notifications(user):
     ret = []
@@ -143,16 +158,19 @@ def table_data(request):
     context = { 'data' : [] }
     task = models.Task.objects.get(title=t)
     task_skills = [ts.name for ts in task.skills.all()]
-    for u in course.students.filter(objective=user.objective).exclude(user=request.user).all():
-        g = u.groups.filter(task=task)
-        if not g:
-            skill_vals = [round(s.level, 2) for s in u.skills.filter(name__in=task_skills).all()]
-            context['data'].append([
-                    u.get_username().capitalize(),
-                    u.user.email] +
-                    skill_vals + [
-                    maprange((0.0, 100.0),(0.0, 5.0),u.reputation)
-                 ])
+    mem = models.Membership.objects.filter(Q(user=user)&Q(course=course)).all()
+    for u in course.students.exclude(user=request.user).all():
+        m = models.Membership.objects.filter(Q(user=u)&Q(course=course)).all()
+        if m[0].objective == mem[0].objective:
+            g = u.groups.filter(task=task)
+            if not g:
+                skill_vals = [round(s.level, 2) for s in u.skills.filter(name__in=task_skills).all()]
+                context['data'].append([
+                        u.get_username().capitalize(),
+                        u.user.email] +
+                        skill_vals + [
+                        maprange((0.0, 100.0),(0.0, 5.0),u.reputation)
+                     ])
 
     return JsonResponse(context)
 

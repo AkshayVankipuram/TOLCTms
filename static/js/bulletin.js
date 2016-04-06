@@ -1,8 +1,8 @@
 var table = null;
 $(function () {
 
-    var href = "/table_data/?course="+coursename+'&task='+taskname;
-
+    //var href = "/table_data/?course="+coursename+'&task='+taskname+'&objective='+myobjective;
+    var href = "/table_data/"+location.search;
 	table = $("#userlist").DataTable({
 		ajax: href,
 		responsive: true,

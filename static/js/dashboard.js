@@ -151,12 +151,11 @@ $(function() {
         $(this).toggleClass('bg-primary');
     });
 
-    $(document).on('click', '.objectiveselect', function() {
-        var obj = $(this).attr('id');
-        $("#"+myobjective+" i").remove();
-        $("#"+obj).append('<i class="ralign fa fa-check"></i>');
-        myobjective = obj;
-        $.getJSON('/set_objective/?objective='+obj);
+    $(document).on('click', '.objselect', function() {
+        var id = $(this).attr('id');
+        var e = id.split('-');
+        var course = e[0].replace(/_/g,' ');
+        var href = '/set_objective/?course='+course+'&objective='+e[1];
     });
     
     function drawRadar(data) {
