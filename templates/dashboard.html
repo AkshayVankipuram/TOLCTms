@@ -18,14 +18,19 @@
         margin-top: 20px;
     }
 
-    .fc-event {
+    .fc-event, kbd {
         cursor: pointer;
+    }
+
+    .tagselected {
+        background-color: #777777;
     }
 
     .extern {
         height: 25px;
         line-height: 25px;
         margin: 1em 0;
+        border-radius: 0px;
     }
 </style>
 <div class="container-fluid">
@@ -54,17 +59,35 @@
                 </a>
                 {% endfor %}
             </ul>
+            <ul class="list-group">
+                <li class="list-group-item active">Objective</li>
+                {% for obj in objectives %}
+                <a class="list-group-item objectiveselect" id="{{obj}}" href="#">{{ obj }}{% if obj == myobjective %}<i class="ralign fa fa-check"></i>{% endif %}</a>
+                {% endfor %}
+            </ul>
         </div>
     </div>
 </div>
 <div class="modal fade" id="modalTmpl" role="dialog">
     <div class="modal-dialog">
         <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title"></h4>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+            </div>
         </div>
     </div>
 </div>
 <script src="{% static 'js/moment.js' %}"></script>
 <script src="{% static 'js/fullcalendar.min.js' %}"></script>
 <script src="{% static 'js/scheduler.min.js' %}"></script>
+<script type="text/javascript">
+    var tasktags = {{ tasktags | safe }};
+    var myobjective = "{{ myobjective }}";
+</script>
 <script src="{% static 'js/dashboard.js' %}"></script>
 {% endblock %}

@@ -33,17 +33,23 @@ $(function() {
         selectHelper: true,
         select: function(start, end, js, v, res) {
             if(res === undefined || (res !== undefined && res.editable)) {
-                /*var form = $("<div>").attr('role', "form");
+                var form = $("<div>").attr('role', "form");
+                var tags = '<div class="well well-sm">';
+                for(var t in tasktags) {
+                    tags += "<kbd id='"+tasktags[t].replace(/ /g, '_')+"'>" + tasktags[t] + "</kbd>  ";
+                }
+                tags += "</div>";
                 createModal(
                     $("<h3>").text("New Event"),
                     form.append("<p hidden id='eresid'>"+USERNAME+"</p>")
                         .append("<p hidden id='estart'>"+start.toISOString()+"</p>")
                         .append("<p hidden id='eend'>"+end.toISOString()+"</p>")
-                        .append($("<code>").text(start.toString()))
-                        .append("<br>")
-                        .append($("<code>").text(end.toString()))
-                        .append("<br>")
+                        .append($("<code>").text('Start: '+start.toString()))
+                        .append("<br><br>")
+                        .append($("<code>").text('End: '+end.toString()))
+                        .append("<br><br>")
                         .append($("<div>").addClass("form-group")
+                            .append(tags)
                             .append($("<label>").attr("for", "etitle").text("Title"))
                             .append($("<input>")
                                 .attr("id", "etitle")
@@ -54,10 +60,9 @@ $(function() {
                                 .css('resize','none')
                                 .attr("id", "edesc")
                                 .attr('rows', 5)
-                                .addClass("form-control")))
-                        .append($("<button>").addClass("btn btn-default").attr('type', 'submit').attr("id","esubmit").text("Submit")),
-                    ""
-                );*/
+                                .addClass("form-control"))),
+                    $("<button>").addClass("btn btn-default").attr('type', 'submit').attr("id","esubmit").text("Submit")
+                );
             }
             calContainer.fullCalendar('unselect');
         },
@@ -72,8 +77,7 @@ $(function() {
         },
         eventClick: function(ce, js, v) {
             if(ce.completed === undefined || !ce.completed) {
-                $('#modal
-                /*var div = $("<div>");
+                var div = $("<div>");
                 strs = ce.description.split(".");
                 for(var i in strs) {
                     div.append($("<p>").text(strs[i]));
@@ -91,7 +95,7 @@ $(function() {
                                 .attr('href', '/feedback/'));
                             $("#modalTmpl").modal("hide");
                         })
-                );*/
+                );
             }
         },
         eventRender: function(ce, js, v) {
@@ -123,12 +127,12 @@ $(function() {
     }, 10 * 60 * 1000);
 
     
-    function createModal(title, body, footer) {
+    function createModal(head, body, foot) {
         var tmpl = $("#modalTmpl");
-        $(".mh", tmpl).html(title);
-        $(".mb", tmpl).load(body);
-        $(".mf", tmpl).html(footer);
-        tmpl.modal("show");
+        $(".modal-title", tmpl).html(head);
+        $(".modal-body", tmpl).html(body);
+        $(".modal-footer", tmpl).html(foot);
+        tmpl.modal('show');
     }
 
     $(document).on("click", "#esubmit", function() {
@@ -140,6 +144,19 @@ $(function() {
             end: $("#eend").text()
         }, true);
         $("#modalTmpl").modal("hide");
+    });
+
+    $(document).on("click", "kbd", function() {
+        var tag = $(this).attr('id').replace(/_/g, ' ');
+        $(this).toggleClass('bg-primary');
+    });
+
+    $(document).on('click', '.objectiveselect', function() {
+        var obj = $(this).attr('id');
+        $("#"+myobjective+" i").remove();
+        $("#"+obj).append('<i class="ralign fa fa-check"></i>');
+        myobjective = obj;
+        $.getJSON('/set_objective/?objective='+obj);
     });
     
     function drawRadar(data) {

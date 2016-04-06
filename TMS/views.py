@@ -55,8 +55,23 @@ def home(request):
         'skills': get_skills(u),
         'reputation': u.reputation,
         'colocate': u.colocate,
-        'notifications': get_notifications(u)
+        'notifications': get_notifications(u),
+        'objectives': [o.name for o in models.Objectives.objects.all()],
+        'myobjective': u.objective.name,
+        'tasktags': [o.title for o in models.Task.objects.filter(~Q(parent=None) & Q(user_owner=None)).all()]
    })
+
+def set_objective(request):
+    u = models.TMSUser.objects.get(user=request.user)
+    obj = request.GET.get('objective', '')
+    objective = models.Objectives.objects.get(name=obj)
+    if objective is not None:
+        u.objective = objective
+        u.save()
+    return JsonResponse({
+            'status': 'OK'
+        })
+
 
 def get_notifications(user):
     ret = []
@@ -123,11 +138,12 @@ def table_data(request):
     c = request.GET.get('course', '')
     t = request.GET.get('task', '')
 
+    user = models.TMSUser.objects.get(user=request.user)
     course = models.Course.objects.get(title=c)
     context = { 'data' : [] }
     task = models.Task.objects.get(title=t)
     task_skills = [ts.name for ts in task.skills.all()]
-    for u in course.students.exclude(user=request.user).all():
+    for u in course.students.filter(objective=user.objective).exclude(user=request.user).all():
         g = u.groups.filter(task=task)
         if not g:
             skill_vals = [round(s.level, 2) for s in u.skills.filter(name__in=task_skills).all()]
@@ -139,13 +155,6 @@ def table_data(request):
                  ])
 
     return JsonResponse(context)
-
-def create_form(request):
-    title = request.GET.get('task', '')
-
-    task = models.Task.objects.get(title=title.capitalize())
-
-    return JsonResponse({})
 
 def get_skill_breakdown(request):
     u = models.TMSUser.objects.get(user=request.user)

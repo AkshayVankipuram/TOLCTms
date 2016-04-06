@@ -10,6 +10,8 @@ class TMSUser(models.Model):
     reputation = models.FloatField(default=0.0)
     colocate = models.BooleanField(default=False)
 
+    objective = models.ForeignKey("Objectives", null=True, related_name="owners")
+
     def __str__(self):
         if self.user is None:
             return "Please create a user using create_user method"
@@ -43,6 +45,16 @@ class TMSUser(models.Model):
         u = User.objects.get(username=self.get_username)
         if u is not None:
             u.delete()
+
+class Objectives(models.Model):
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+    def __unicode__(self):
+        return self.name
+
 
 class TMSGroup(models.Model):
     name = models.CharField(max_length=50)
