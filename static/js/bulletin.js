@@ -30,7 +30,7 @@ $(function () {
 
 	$(table.column(9).nodes()).addClass("bg-success");
   
-    var currentUList = [];
+    var currentUList = [USERNAME];
     
     var mapUV = { };
 
@@ -72,15 +72,18 @@ $(function () {
             $("#groupvar").text(Math.round(variance * 100) / 100);
             
             if($(this).hasClass('bg-info')) {
-                if(variance >= 0.2 && variance < 0.4) {
-                    $("#notifications").append($("<li>")
-                        .addClass("list-group-item list-group-item-danger")
-                        .text("Try to raise it a bit"));
-                } else if(variance >= 0 && variance  < 0.2) {
-                    $("#notifications").append($("<li>")
-                        .addClass("list-group-item list-group-item-danger")
-                        .text("Very low"));
+                var notify = $("<li>").addClass("list-group-item");
+                if(variance >= 2.5) {
+                    notify.addClass('list-group-item-success')
+                        .text("Well done. That's a good group");
+                } else if(variance >= 2.0 && variance < 2.5) {
+                    notify.addClass("list-group-item-warning")
+                        .text("Try to raise it a bit");
+                } else if(variance < 2.0) {
+                    notify.addClass("list-group-item-danger")
+                        .text("Low variance, this will affect your reputation");
                 }
+                notify.appendTo($('#notifications'));
             }
         
         } else {
@@ -97,6 +100,15 @@ $(function () {
         getDataDrawRadar(currentUList);
     });
 
+    $(document).on('click', "#submitgroup", function() {
+        if(currentUList.length == 1) {
+            var r = confirm("Are you sure? Because, as we know, 1 is the loneliest number.");
+            if(r == false) {
+                return;
+            }
+        }
+    });
+
     function unselectRow(select, d) {
         var v = d[0];
         delete mapUV[v];
@@ -108,7 +120,7 @@ $(function () {
 
     function selectRow(select, d) {
         var v = d[0];
-        if(currentUList.length == 3)
+        if(currentUList.length == 4)
             return;
         mapUV[v] = d.slice(2, d.length);
         currentUList.push(v);

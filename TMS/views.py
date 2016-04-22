@@ -52,12 +52,10 @@ def home(request):
             'msg': 'Logout',
             'name': request.user.username,
         },
-        'skills': get_skills(u),
         'reputation': u.reputation,
         'colocate': u.colocate,
         'objectives': get_objectives(u),
         'notifications': get_notifications(u),
-        'tasktags': [o.title.encode('ascii') for o in models.Task.objects.filter(~Q(parent=None) & Q(user_owner=None)).all()]
    })
 
 
@@ -68,6 +66,7 @@ def get_objectives(user):
         objs = list(set([me.objective for me in models.Membership.objects.all()]))
         ret[c.title] = {
             'myobj': m[0].objective,
+            'myobjid': '{0}-{1}'.format(c.title.replace(' ','_'), m[0].objective),
             'objs': [{
                 'name': o,
                 'id': '{0}-{1}'.format(c.title.replace(' ','_'), o)
@@ -82,12 +81,20 @@ def set_objective(request):
     course = models.Course.objects.get(title=c)
     m = models.Membership.objects.filter(user=u).filter(course=course).all()
     if m:
-        m.objective = obj
-        m.save()
-    return JsonResponse({
-            'status': 'OK'
-        })
-
+        old = m[0].objective
+        m[0].objective = obj
+        m[0].save()
+        return JsonResponse({
+                'status': True,
+                'old': old,
+                'old_id': '{0}-{1}'.format(course.title.replace(' ','_'), old),
+                'new': m[0].objective,
+                'new_id': '{0}-{1}'.format(course.title.replace(' ','_'), m[0].objective)
+            })
+    else:
+        return JsonResponse({
+                'status': False
+            })
 def get_notifications(user):
     ret = []
     for course in user.courses.all():
@@ -110,15 +117,17 @@ def bulletin(request):
 
     if not group_formed:
         context['task'] = task.to_json(False)
+        """
         for skill in context['task']['skills']:
             if skill['level'] - int(skill['level']) > 0.5:
                 v  = int(skill['level']) + 1
             else:
                 v = int(skill['level'])
-            skill['level'] = (v * [1]) + ((5 - v) * [0])
+            skill['level'] = (v * [1]) + ((5 - v) * [0])"""
         u = models.TMSUser.objects.get(user=request.user)
-        context['skill_names'] = [s.name[:min(4, len(s.name))].capitalize() for s in u.skills.filter(name__in=task_skills).all()]
-        context['skill_vals'] = [s.level for s in u.skills.filter(name__in=task_skills).all()] + \
+        us = models.UserSkill.objects.filter(user=u).all()
+        context['skill_names'] = [s[:min(4, len(s))].capitalize() for s in task_skills]
+        context['skill_vals'] = [s.level for s in us if s.skill.name in task_skills] + \
                 [maprange((0.0, 100.0),(0.0, 5.0),u.reputation)]
         context['user_login'] = {
             'url': '/logout',
@@ -140,13 +149,15 @@ def chart_data(request):
         ous = [models.TMSUser.objects.get(user=request.user)] + \
                 [models.TMSUser.get_user(uname.lower()) for uname in usernames]
         def get_skill(cu):
-            return [{'axis': s.name, 'value': s.level / 5.0} for s in cu.skills.filter(name__in=task_skills).all()] + \
+            us = models.UserSkill.objects.filter(user=cu).all()
+            return [{'axis': s.skill.name, 'value': s.level / 5.0} for s in us if s.skill.name in task_skills] + \
                 [{'axis': 'reputation', 'value': maprange((0.0, 100.0),(0.0, 1.0),cu.reputation)}]
 
         return JsonResponse([get_skill(cu) for cu in ous], safe=False)
     else:
         u = models.TMSUser.objects.get(user=request.user)
-        return JsonResponse([{'axis': s.name, 'value': s.level / 5.0} for s in u.skills.all()] + \
+        us = models.UserSkill.objects.filter(user=u).all()
+        return JsonResponse([{'axis': s.skill.name, 'value': s.level / 5.0} for s in us] + \
                 [{'axis': 'reputation', 'value': maprange((0.0, 100.0),(0.0, 1.0),u.reputation)}], safe=False)
 
 def table_data(request):
@@ -164,7 +175,8 @@ def table_data(request):
         if m[0].objective == mem[0].objective:
             g = u.groups.filter(task=task)
             if not g:
-                skill_vals = [round(s.level, 2) for s in u.skills.filter(name__in=task_skills).all()]
+                us = models.UserSkill.objects.filter(user=u).all()
+                skill_vals = [round(s.level, 2) for s in us if s.skill.name in task_skills]
                 context['data'].append([
                         u.get_username().capitalize(),
                         u.user.email] +
@@ -181,12 +193,12 @@ def get_skill_breakdown(request):
     for group in u.groups.all():
         duration = (group.task.end - group.task.start).total_seconds() / 3600.0 / 4.0
         context[group.task.title] = [{
-            'title': child.title,
-            'description': child.description,
+            'title': skill.name,
+            'description': '',
             'duration': '{0}:00'.format(duration),
             'stick': True,
             'resourceID': u.get_username()
-        } for child in group.task.children.all()]
+        } for skill in group.task.skills.all()]
     return JsonResponse(context)
 
 
@@ -242,16 +254,6 @@ def get_tasks_for_user(user):
         for course in u.courses.all():
             ret[course.title] = { 'instructor' : course.instructor, 'semester': course.semester, 'tasks': course.get_tasks() }
     return ret
-
-def get_skills(u):
-    if u is not None:
-        return [{
-            'name': s.name,
-            'rating': round(s.level, 1),
-            'id': s.name.replace(' ', '_').lower()
-        } for s in u.skills.all()]
-    else:
-        return []
 
 def get_tasks(user):
     u = models.TMSUser.objects.get(user=user)

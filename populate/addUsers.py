@@ -12,17 +12,15 @@ def read_file(fname, names):
 
 def populate(names):
     random.seed()
-    skills = ['database', 'system', 'web', 'oop', 'communication', 'scripting', 'statistics']
+    skills = models.Skill.objects.all()
     for name in names:
         u = models.TMSUser()
         print('Creating ' + name)
         u.create_user(name, name+'pass', name, name+'@tolc.edu')
+        u.reputation = random.uniform(0.0, 100.0)
         u.save()
         for skill in skills:
-            s = models.Skill(name=skill)
-            s.level = random.uniform(0.0, 5.0)
-            s.save()
-            u.skills.add(s)
-        u.save()
+            uskill = models.UserSkill(user=u, skill=skill, level=random.uniform(0.0, 5.0))
+            uskill.save()
 
 

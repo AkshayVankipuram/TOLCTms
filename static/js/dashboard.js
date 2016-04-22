@@ -27,6 +27,8 @@ $(function() {
         businessHours: false,
         droppable: true,
         drop: function(date, j, u, r) {
+            if(r != USERNAME) {
+            }
             $(this).remove();
         },
         selectable: true,
@@ -35,9 +37,6 @@ $(function() {
             if(res === undefined || (res !== undefined && res.editable)) {
                 var form = $("<div>").attr('role', "form");
                 var tags = '<div class="well well-sm">';
-                for(var t in tasktags) {
-                    tags += "<kbd id='"+tasktags[t].replace(/ /g, '_')+"'>" + tasktags[t] + "</kbd>  ";
-                }
                 tags += "</div>";
                 createModal(
                     $("<h3>").text("New Event"),
@@ -92,14 +91,13 @@ $(function() {
                             $('#goto').append($('<a>')
                                 .addClass('list-group-item list-group-item-success feedback')
                                 .html(ce.title + '<i class="ralign fa fa-comment"></i>')
-                                .attr('href', '/feedback/'));
+                                .attr('href', '/feedback/?task='+ce.title));
                             $("#modalTmpl").modal("hide");
                         })
                 );
             }
         },
         eventRender: function(ce, js, v) {
-            
         },
         resourceLabelText: 'Courses',
         resourceAreaWidth: '15%',
@@ -156,6 +154,12 @@ $(function() {
         var e = id.split('-');
         var course = e[0].replace(/_/g,' ');
         var href = '/set_objective/?course='+course+'&objective='+e[1];
+        $.getJSON(href, function(res) {
+            if(res.status) {
+                $("#"+res.old_id+" i").remove();
+                $("#"+res.new_id).append("<i class='ralign fa fa-check'></i>");
+            }
+        });
     });
     
     function drawRadar(data) {

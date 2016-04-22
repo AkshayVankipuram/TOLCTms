@@ -6,9 +6,10 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 
 class TMSUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    skills = models.ManyToManyField('Skill', related_name="+")
     reputation = models.FloatField(default=0.0)
     colocate = models.BooleanField(default=False)
+
+    skills = models.ManyToManyField('Skill', through="UserSkill", related_name="+")
 
     def __str__(self):
         if self.user is None:
@@ -75,13 +76,23 @@ class TMSGroup(models.Model):
 
 class Skill(models.Model):
     name = models.CharField(max_length=15)
-    level = models.FloatField(default=1.0, validators=[MinValueValidator(0.0), MaxValueValidator(5.0)])
 
     def __str__(self):
         return self.name
 
     def __unicode__(self):
         return self.name
+
+class UserSkill(models.Model):
+    user = models.ForeignKey('TMSUser', on_delete=models.CASCADE)
+    skill = models.ForeignKey('Skill', on_delete=models.CASCADE)
+    level = models.FloatField(default=1.0, validators=[MinValueValidator(0.0), MaxValueValidator(5.0)])
+
+    def __str__(self):
+        return self.user.get_username() + self.skill.name
+
+    def __unicode__(self):
+        return self.user.get_username() + self.skill.name
 
 
 class Course(models.Model):
@@ -103,13 +114,12 @@ class Course(models.Model):
         return ret
 
 class Task(models.Model):
-    parent = models.ForeignKey('self', null=True, related_name="children")
     title = models.CharField(max_length=20)
     description = models.TextField(blank=True)
     start = models.DateTimeField(null=True)
     end = models.DateTimeField(null=True)
 
-    skills = models.ManyToManyField('Skill', related_name="+")
+    skills = models.ManyToManyField('Skill', related_name="tasks")
 
     course_owner = models.ForeignKey('Course', null=True, related_name="tasks")
     user_owner = models.ForeignKey('TMSUser', null=True, related_name="tasks")
@@ -164,7 +174,7 @@ class Task(models.Model):
             'start': format_start,
             'end': format_end,
             'owner': owner,
-            'skills': [{'name': s.name, 'level': s.level} for s in self.skills.all()]
+            'skills': [s.name for s in self.skills.all()]
         }
 
         return ret
