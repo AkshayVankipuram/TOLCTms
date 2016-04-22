@@ -56,7 +56,7 @@ def home(request):
         'colocate': u.colocate,
         'objectives': get_objectives(u),
         'notifications': get_notifications(u),
-        'skills': [skill.name for skill in models.Skill.objects.all()]
+        'skills': [skill.name.encode('ascii') for skill in models.Skill.objects.all()]
    })
 
 
@@ -102,7 +102,9 @@ def get_notifications(user):
         for task in course.tasks.all():
             g = user.groups.filter(task=task).all()
             if not g:
-                ret.append(task.to_json())
+                t = task.to_json()
+                t['course_abbr'] = ''.join([w[0].upper() for w in course.title.split(' ')])
+                ret.append(t)
     return ret
 
 def bulletin(request):
