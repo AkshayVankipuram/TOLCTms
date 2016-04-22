@@ -36,8 +36,10 @@ $(function() {
         select: function(start, end, js, v, res) {
             if(res === undefined || (res !== undefined && res.editable)) {
                 var form = $("<div>").attr('role', "form");
-                var tags = '<div class="well well-sm">';
-                tags += "</div>";
+                var tags = $("<select>").attr('id','skillsel').attr("multiple", true).attr('size', 3).addClass('form-control');
+                for(var n in skill_names) {
+                    tags.append('<option>'+skill_names[n]+'</option>');
+                }
                 createModal(
                     $("<h3>").text("New Event"),
                     form.append("<p hidden id='eresid'>"+USERNAME+"</p>")
@@ -48,7 +50,12 @@ $(function() {
                         .append($("<code>").text('End: '+end.toString()))
                         .append("<br><br>")
                         .append($("<div>").addClass("form-group")
+                            .append($("<label>").attr("for", "skillsel").text("Select skill type"))
                             .append(tags)
+                            .append($("<label>").attr("for", "enterskill").text("Or enter new skill type"))
+                            .append($("<input>")
+                                .attr("id", "enterskill")
+                                .addClass("form-control"))
                             .append($("<label>").attr("for", "etitle").text("Title"))
                             .append($("<input>")
                                 .attr("id", "etitle")

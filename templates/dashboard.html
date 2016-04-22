@@ -89,6 +89,7 @@
 <script src="{% static 'js/fullcalendar.min.js' %}"></script>
 <script src="{% static 'js/scheduler.min.js' %}"></script>
 <script type="text/javascript">
+    var skill_names = {{ skills | safe }};
 </script>
 <script src="{% static 'js/dashboard.js' %}"></script>
 {% endblock %}

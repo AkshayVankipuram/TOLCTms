@@ -56,6 +56,7 @@ def home(request):
         'colocate': u.colocate,
         'objectives': get_objectives(u),
         'notifications': get_notifications(u),
+        'skills': [skill.name for skill in models.Skill.objects.all()]
    })
 
 
