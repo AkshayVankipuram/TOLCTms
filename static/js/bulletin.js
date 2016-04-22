@@ -8,6 +8,14 @@ $(function () {
 		responsive: true,
 		autoWidth: false,
 		lengthMenu: [ 20, 40 ],
+        order: [[hidden, "desc"]],
+        columnDefs: [
+            {
+                targets: [ hidden ],
+                visible: false,
+                searchable: false
+            }
+        ],
 		rowCallback: function(row, data, index) {
 			function stars(v) {
 				var ret = '';
@@ -21,15 +29,13 @@ $(function () {
 			}
 
             var v = $("#userlist").parents('.panel-body').width() * .8;
-			for(var i = 2; i <= 8; i++) {
+			for(var i = 2; i < hidden; i++) {
 				$("td:eq("+i+")", row).html(stars(data[i]));
                 //$("td:eq("+i+")", row).html('<progress style="max-width: '+(v / data.length)+'px" max="5.0" value="'+data[i]+'"></progress>');
 			}
 		}
 	});
 
-	$(table.column(9).nodes()).addClass("bg-success");
-  
     var currentUList = [USERNAME];
     
     var mapUV = { };

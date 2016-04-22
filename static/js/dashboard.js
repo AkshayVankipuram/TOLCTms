@@ -20,7 +20,7 @@ $(function() {
         header: {
             left: 'today prev,next',
             center: 'title',
-            right: 'timelineWeek,month'
+            right: 'timelineWeek,timelineMonth'
         },
         defaultView: 'timelineWeek',
         allDayDefault: false,
@@ -42,7 +42,7 @@ $(function() {
                 }
                 createModal(
                     $("<h3>").text("New Event"),
-                    form.append("<p hidden id='eresid'>"+USERNAME+"</p>")
+                    form.append("<p hidden id='eresid'>"+res.id+"</p>")
                         .append("<p hidden id='estart'>"+start.toISOString()+"</p>")
                         .append("<p hidden id='eend'>"+end.toISOString()+"</p>")
                         .append($("<code>").text('Start: '+start.toString()))
@@ -84,6 +84,15 @@ $(function() {
         eventClick: function(ce, js, v) {
             if(ce.completed === undefined || !ce.completed) {
                 var div = $("<div>");
+
+                div.append('<p>Skills required</p>');
+                var idiv = $("<div>").addClass("well well-sm");
+                for(var s in ce.skills) {
+                    idiv.append('<kbd>'+ce.skills[s]+'</kbd>&nbsp;');
+                }
+                div.append(idiv);
+
+                div.append('<p>Description</p>');
                 strs = ce.description.split(".");
                 for(var i in strs) {
                     div.append($("<p>").text(strs[i]));
@@ -113,7 +122,7 @@ $(function() {
             if(res.id.indexOf('group_task') > -1) {
                 labelTds.addClass('bg-success');
                 bodyTds.addClass('bg-success');
-            } else if(res.id == USERNAME) {
+            } else if(res.id.indexOf('CU') > -1) {
                 labelTds.addClass('text-primary');
             }
         },
@@ -141,8 +150,21 @@ $(function() {
     }
 
     $(document).on("click", "#esubmit", function() {
+        var skillset = $('#skillsel').val();
+        var newskills = $('#enterskill').val();
+
+        var cs = [];
+        if(skillset !== null) {
+            cs.push.apply(cs, skillset);
+        }
+
+        if(newskills.length > 1) {
+            cs.push.apply(cs, newskills.split(','));
+        }
+
         calContainer.fullCalendar("renderEvent", {
             title: $("#etitle").val(),
+            skills: cs,
             description: $("#edesc").val(),
             resourceId: $("#eresid").text(),
             start: $("#estart").text(),

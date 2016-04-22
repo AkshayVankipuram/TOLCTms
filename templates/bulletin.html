@@ -87,8 +87,20 @@
                                 <th>{{ skill }}</th>
                                 {% endfor %}
                                 <th>Repu</th>
+                                <th>Match</th>
                             </tr>
                         </thead>
+                        <tfoot>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                {% for skill in skill_names %}
+                                <th>{{ skill }}</th>
+                                {% endfor %}
+                                <th>Repu</th>
+                                <th>Match</th>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -116,6 +128,7 @@
     var coursename = "{{ course }}";
     var taskname = "{{ task.title }}";
     var skillvals = {{ skill_vals | safe }};
+    var hidden = {{ hidden }};
 </script>
 <script src="{% static 'js/bulletin.js' %}"></script>
 {% endblock %}

@@ -8,7 +8,8 @@ from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from TMS import models, color
 from itertools import chain
-import json, os
+import json, os, random
+from statistics import variance
 
 def pre_login(request):
     if request.user.is_authenticated():
@@ -56,7 +57,7 @@ def home(request):
         'colocate': u.colocate,
         'objectives': get_objectives(u),
         'notifications': get_notifications(u),
-        'skills': [skill.name.encode('ascii') for skill in models.Skill.objects.all()]
+        'skills': [skill.name for skill in models.Skill.objects.all()]
    })
 
 
@@ -103,7 +104,8 @@ def get_notifications(user):
             g = user.groups.filter(task=task).all()
             if not g:
                 t = task.to_json()
-                t['course_abbr'] = ''.join([w[0].upper() for w in course.title.split(' ')])
+                abbr = [w[0].upper() for w in course.title.split(' ')]
+                t['course_abbr'] = ''.join(abbr[:2])
                 ret.append(t)
     return ret
 
@@ -120,16 +122,10 @@ def bulletin(request):
 
     if not group_formed:
         context['task'] = task.to_json(False)
-        """
-        for skill in context['task']['skills']:
-            if skill['level'] - int(skill['level']) > 0.5:
-                v  = int(skill['level']) + 1
-            else:
-                v = int(skill['level'])
-            skill['level'] = (v * [1]) + ((5 - v) * [0])"""
         u = models.TMSUser.objects.get(user=request.user)
         us = models.UserSkill.objects.filter(user=u).all()
         context['skill_names'] = [s[:min(4, len(s))].capitalize() for s in task_skills]
+        context['hidden'] = len(context['skill_names']) + 3
         context['skill_vals'] = [s.level for s in us if s.skill.name in task_skills] + \
                 [maprange((0.0, 100.0),(0.0, 5.0),u.reputation)]
         context['user_login'] = {
@@ -172,6 +168,9 @@ def table_data(request):
     context = { 'data' : [] }
     task = models.Task.objects.get(title=t)
     task_skills = [ts.name for ts in task.skills.all()]
+
+    myskills = [us.level for us in models.UserSkill.objects.filter(user=user).all() if us.skill.name in task_skills]
+
     mem = models.Membership.objects.filter(Q(user=user)&Q(course=course)).all()
     for u in course.students.exclude(user=request.user).all():
         m = models.Membership.objects.filter(Q(user=u)&Q(course=course)).all()
@@ -184,10 +183,15 @@ def table_data(request):
                         u.get_username().capitalize(),
                         u.user.email] +
                         skill_vals + [
-                        maprange((0.0, 100.0),(0.0, 5.0),u.reputation)
+                        maprange((0.0, 100.0),(0.0, 5.0),u.reputation),
+                        get_skill_var(myskills, skill_vals)
                      ])
 
     return JsonResponse(context)
+
+def get_skill_var(ms, os):
+    d = [os[i] - ms[i] for i in range(len(ms))]
+    return variance(d)
 
 def get_skill_breakdown(request):
     u = models.TMSUser.objects.get(user=request.user)
@@ -237,8 +241,11 @@ def resource_stream(request):
                 }
             for member in group.members.all():
                 editable = (member.get_username() == u.get_username())
+                id = '{0}_{1}'.format(group.name.lower(), member.get_username()).replace(' ', '_')
+                if member == u:
+                    id = 'CU_' + id
                 obj['children'].append({
-                        'id': member.get_username().replace(' ', '_'),
+                        'id': id,
                         'title': member.get_username().capitalize(),
                         'course': course.title,
                         'editable': editable,
