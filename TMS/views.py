@@ -271,6 +271,26 @@ def resource_stream(request):
     return JsonResponse(resources, safe=False)
 
 def feedback(request):
+    context = {}
+    context["metric_labels"] = ['Knowledge','Communication','Teamwork','ProblemSolving', 'Dependability', 'Leadership', 'Responsiveness']
+    context["metric_values"] = ['1','2','3','4','5']
+
+    user = models.TMSUser.objects.get(user=request.user)
+    t = request.GET.get('task', '')
+    task = models.Task.objects.get(title=t)
+    group = user.groups.filter(task=task).all()
+    peer_list = [member.get_username() for member in group[0].members.exclude(user=request.user).all()]
+    context["peer_list"] = peer_list
+    task_skills = [ts.name for ts in task.skills.all()]
+    context["task_name"] = task.title;
+    context["task_skills"] = task_skills;
+    context['user_login'] = {
+            'url': '/logout',
+            'msg': 'Logout',
+            'name': request.user.username
+        }
+
+    return render(request, 'feedback.html', context)
     return HttpResponse("OK")
 
 def get_tasks_for_user(user):
