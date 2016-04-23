@@ -10,11 +10,19 @@ $(function() {
     $('#submitButton').click(function() {
 
 		if($('#peerListDiv').find('.active').length == 0)
-			alert("Please select a Peer for evaluation.");
+		{
+			$("#notifications  li:eq(1)").before($("<li>")
+			.addClass("list-group-item list-group-item-danger")
+			.text("Please select a Peer for evaluation."));
+			//alert("Please select a Peer for evaluation.");
+		}
 		else
 		{
 			var currentPeer = $('#peerListDiv').find('.active')[0];
-			alert("Your evaluation for " + currentPeer.innerHTML+" has been recorded. Thank you.");
+			$("#notifications  li:eq(1)").before($("<li>")
+			.addClass("list-group-item list-group-item-success")
+			.text("Your evaluation for " + currentPeer.innerHTML+" has been recorded. Thank you."));
+			//alert("Your evaluation for " + currentPeer.innerHTML+" has been recorded. Thank you.");
 			currentPeer.remove();
 			resetForm();
 			
