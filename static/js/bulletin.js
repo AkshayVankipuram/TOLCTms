@@ -111,12 +111,23 @@ $(function () {
     });
 
     $(document).on('click', "#submitgroup", function() {
+        var gname = $("#gname input").val();
+        if(gname.length == 0) {
+            alert("Please enter a group name");
+            return;
+        }
         if(currentUList.length == 1) {
             var r = confirm("Are you sure? Because, as we know, 1 is the loneliest number.");
             if(r == false) {
                 return;
             }
         }
+        var ns = [];
+        for(var i in currentUList) {
+            ns.push(currentUList[i].toLowerCase());
+        }
+        var href = "/create_group/?course="+coursename+"&task="+taskname+"&group="+JSON.stringify(ns)+"&name="+gname;
+        console.log(href);
     });
 
     function unselectRow(select, d) {

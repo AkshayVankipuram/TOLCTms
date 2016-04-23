@@ -137,6 +137,22 @@ def bulletin(request):
     else:
         return redirect('/')
 
+def create_group(request):
+    names = json.loads(request.GET.get('group', '[]'))
+    gname = request.GET.get('name', '')
+    task = request.GET.get('task', '')
+    course = request.GET.get('course', '')
+
+    t = models.Task.objects.get(title=task)
+    c = models.Course.objects.get(title=course)
+    g = models.TMSGroup(name=gname, task=t, course=c)
+    g.save()
+    for name in names:
+        u = models.TMSUser.get_user(name)
+        g.members.add(u)
+    g.set_group_variance()
+    return redirect('/home') 
+
 def chart_data(request):
     tp = request.GET.get('tp', 'task')
     if tp == 'task':
