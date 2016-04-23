@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block content %}
+{% load staticfiles %}
+<link rel="stylesheet" href="{% static 'css/fullcalendar.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/scheduler.min.css' %}">
+<style>
+.metricLabel{
+	padding-right: 10px;
+	padding-bottom: 10px;
+}
+
+.score
+{
+	font-size: 32px;
+	font-weight: bold;
+}
+</style>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2">
+            <div class="panel panel-primary">
+                <div class="panel-heading">Peers</div>
+                <div class="panel-body">
+					<div  class="list-group" id="peerListDiv">
+						{% for peer in peer_list %}
+							<a href="#" class="list-group-item">{{peer}}</a>
+						{% endfor %}
+					</div>
+				</div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="panel panel-primary">
+                <div class="panel-heading">Peer Evaluation for {{task_name}}</div>
+                <div class="panel-body">
+					<table width="100%">
+						<tr>
+							<th class="metricLabel">General</th>
+							<th class="metricLabel">Task Skills</th>
+						</tr>
+						<tr>
+							<td style="width:50%" valign="top">
+								<table class="generalMetricEvaluationTable">
+									{% for metricLabel in metric_labels %}
+									<tr>
+										<td class="metricLabel">{{ metricLabel }}</td>
+										<td class="metricLabel">
+											<div class="btn-group" data-toggle="buttons">
+												{% for metricValue in metric_values %}
+												<label class="btn btn-success">
+													<input class="generalMetricRadio" type="radio" id="{{ metricLabel }}{{metricValue}}" name="{{ metricLabel }}" value="{{metricValue}}" /> {{metricValue}}
+												</label> 
+												{% endfor %}
+												<label class="btn btn-success active">
+													<input class="generalMetricRadio" type="radio" id="{{ metricLabel }}na" name="{{ metricLabel }}" value="na" /> NA
+												</label>
+											</div>
+										</td>
+									</tr>
+									{% endfor %}
+								</table>
+							</td>
+							
+							<td style="width:50%" valign="top">
+								<table class="taskMetricEvaluationTable">
+									{% for taskSkill in task_skills %}
+									<tr>
+										<td class="metricLabel">{{ taskSkill }}</td>
+										<td class="metricLabel">
+											<div id="metricData" class="btn-group" data-toggle="buttons">
+												{% for taskValue in metric_values %}
+												<label class="btn btn-info">
+													<input class="taskMetricRadio" type="radio" id="{{ taskSkill }}{{taskValue}}" name="{{ taskSkill }}" value="{{taskValue}}" /> {{taskValue}}
+												</label> 
+												{% endfor %}
+												<label class="btn btn-info active">
+													<input class="taskMetricRadio" type="radio" id="{{ metricLabel }}na" name="{{ metricLabel }}" value="na" /> NA
+												</label>
+											</div>
+										</td>
+									</tr>
+									{% endfor %}
+								</table>
+							</td>
+						<tr>
+						<tr>
+							<td colspan="2">
+								 <button type="button" id="submitButton" class="btn btn-default" style="float: right;"> Submit </button>
+							</td>
+						</tr>
+					</table>
+				</div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="panel panel-primary">
+                <div class="panel-heading">Score</div>
+                <div class="panel-body">
+					<p>General Reputation</p>
+					<div id="generalMetricScoreDiv" class="score">NA</div>
+					<br/>
+					<p>Task Skills</p>
+					<div id="taskMetricScoreDiv" class="score">NA</div>
+				</div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+   
+</script>
+<script src="{% static 'js/feedback.js' %}"></script>
+{% endblock %}
