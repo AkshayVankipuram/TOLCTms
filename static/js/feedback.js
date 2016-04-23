@@ -21,7 +21,8 @@ $(function() {
 			var currentPeer = $('#peerListDiv').find('.active')[0];
 			$("#notifications  li:eq(1)").before($("<li>")
 			.addClass("list-group-item list-group-item-success")
-			.text("Your evaluation for " + currentPeer.innerHTML+" has been recorded. Thank you."));
+			.text("Your evaluation for " + currentPeer.innerHTML +" (Reputation: "+$('#generalMetricScoreDiv').html()
+	        	+ " Skills: " + $('#taskMetricScoreDiv').html()+") has been recorded. Thank you."));
 			//alert("Your evaluation for " + currentPeer.innerHTML+" has been recorded. Thank you.");
 			currentPeer.remove();
 			resetForm();
