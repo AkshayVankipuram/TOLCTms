@@ -54,27 +54,33 @@ def home(request):
             'name': request.user.username,
         },
         'reputation': u.reputation,
-        'colocate': u.colocate,
-        'objectives': get_objectives(u),
+        'colocate': u.colocate,    
+        'objectives': get_objectives(u, None),    
         'notifications': get_notifications(u),
         'skills': [skill.name for skill in models.Skill.objects.all()]
    })
 
 
-def get_objectives(user):
-    ret = {}
-    for c in user.courses.all():
-        m = models.Membership.objects.filter(Q(user=user)&Q(course=c)).all()
+def get_objectives(user, c):
+    def get_vals(course):
+        m = models.Membership.objects.filter(Q(user=user)&Q(course=course)).all()
         objs = list(set([me.objective for me in models.Membership.objects.all()]))
-        ret[c.title] = {
+        return {
             'myobj': m[0].objective,
-            'myobjid': '{0}-{1}'.format(c.title.replace(' ','_'), m[0].objective),
+            'myobjid': '{0}-{1}'.format(course.title.replace(' ','_'), m[0].objective),
             'objs': [{
                 'name': o,
-                'id': '{0}-{1}'.format(c.title.replace(' ','_'), o)
+                'id': '{0}-{1}'.format(course.title.replace(' ','_'), o)
                 } for o in objs]
         }
-    return ret
+    if c == None:
+        ret= {}
+        for c in user.courses.all():
+            ret[c.title] = get_vals(c)
+        return ret
+    else:
+        return get_vals(c)
+
 
 def set_objective(request):
     u = models.TMSUser.objects.get(user=request.user)
@@ -133,6 +139,7 @@ def bulletin(request):
             'msg': 'Logout',
             'name': request.user.username
         }
+        context['objectives'] = get_objectives(u, models.Course.objects.get(title=c))
         return render(request, 'bulletin.html', context)
     else:
         return redirect('/')
@@ -151,7 +158,7 @@ def create_group(request):
         u = models.TMSUser.get_user(name)
         g.members.add(u)
     g.set_group_variance()
-    return redirect('/home') 
+    return redirect('/')
 
 def chart_data(request):
     tp = request.GET.get('tp', 'task')
@@ -178,6 +185,7 @@ def chart_data(request):
 def table_data(request):
     c = request.GET.get('course', '')
     t = request.GET.get('task', '')
+    o = request.GET.get('objective', '')
 
     user = models.TMSUser.objects.get(user=request.user)
     course = models.Course.objects.get(title=c)
@@ -187,10 +195,10 @@ def table_data(request):
 
     myskills = [us.level for us in models.UserSkill.objects.filter(user=user).all() if us.skill.name in task_skills]
 
-    mem = models.Membership.objects.filter(Q(user=user)&Q(course=course)).all()
+    #mem = models.Membership.objects.filter(Q(user=user)&Q(course=course)).all()
     for u in course.students.exclude(user=request.user).all():
         m = models.Membership.objects.filter(Q(user=u)&Q(course=course)).all()
-        if m[0].objective == mem[0].objective:
+        if (o != '' and m[0].objective == o) or o == '':
             g = u.groups.filter(task=task)
             if not g:
                 us = models.UserSkill.objects.filter(user=u).all()
@@ -206,7 +214,7 @@ def table_data(request):
     return JsonResponse(context)
 
 def get_skill_var(ms, mre, os, ore):
-    d = [os[i] - ms[i] for i in range(len(ms))] + [1.5*(ore-mre)]
+    d = [variance([os[i],ms[i]]) for i in range(len(ms))] + [variance([ore,mre])]
     return round(sum(d)/len(d), 2)
 
 def get_skill_breakdown(request):
@@ -320,10 +328,6 @@ def save_skills(request):
 
 def save_event(request):
     #j = json.loads(request.GET.get('event', '{}'))
-    #t = models.Task.objects.get(title=j['title'])
-    #if t is not None:
-        #t.set_from_cal_event_format(j)
-        #t.save()
     return HttpResponse('OK')
 
 def get_relevant_tasks(user):

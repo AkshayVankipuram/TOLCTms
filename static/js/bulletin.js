@@ -1,10 +1,10 @@
 var table = null;
 $(function () {
 
-    //var href = "/table_data/?course="+coursename+'&task='+taskname+'&objective='+myobjective;
-    var href = "/table_data/"+location.search;
+    var table_href = "/table_data/?course="+coursename+'&task='+taskname+'&objective='+objective;
+    //var href = "/table_data/"+location.search;
 	table = $("#userlist").DataTable({
-		ajax: href,
+		ajax: table_href,
 		responsive: true,
 		autoWidth: false,
 		lengthMenu: [ 20, 40 ],
@@ -54,6 +54,14 @@ $(function () {
         return newArr;
     }
 
+
+    $(document).on('click', '.objselect', function() {
+        var id = $(this).attr('id');   
+        var o = id.split('-');
+        table_href = "/table_data/?course="+coursename+'&task='+taskname+'&objective='+o[1]; 
+        table.ajax.url(table_href).load();    
+    });
+
     $('#userlist tbody').on('click', 'tr', function() {
         var d = table.row(this).data();
         if($(this).hasClass('bg-info')) {
@@ -89,7 +97,7 @@ $(function () {
                     notify.addClass("list-group-item-danger")
                         .text("Low variance, this will affect your reputation");
                 }
-                notify.appendTo($('#notifications'));
+                $('#notifications .footer').before(notify);
             }
         
         } else {
@@ -116,18 +124,16 @@ $(function () {
             alert("Please enter a group name");
             return;
         }
-        if(currentUList.length == 1) {
-            var r = confirm("Are you sure? Because, as we know, 1 is the loneliest number.");
-            if(r == false) {
-                return;
-            }
+        if(currentUList.length < 2) {
+            alert("You need a group size of at least 2");
+            return;
         }
         var ns = [];
         for(var i in currentUList) {
             ns.push(currentUList[i].toLowerCase());
         }
         var href = "/create_group/?course="+coursename+"&task="+taskname+"&group="+JSON.stringify(ns)+"&name="+gname;
-        console.log(href);
+        window.location.href = href;
     });
 
     function unselectRow(select, d) {
