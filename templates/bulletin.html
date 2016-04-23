@@ -85,16 +85,12 @@
             <div class="panel panel-primary">
                 <div class="panel-heading">Postings</div>
                 <div class="panel-heading" role="form">
+                    <div class="btn-group">
                     {% for obj in objectives.objs %}
-                    <label class="radio-inline"><input id="{{obj.id}}" class="objselect" type="radio" name="objradio" {% if objectives.myobj == obj.name %}checked{%endif%}>
-                        {% if objectives.myobj == obj.name %}
-                            <kbd>{{obj.name}}</kbd>
-                        {% else %}
-                            {{obj.name}}
-                        {% endif %}
-                    </label>
+                    <button type="button" id="{{obj.id}}" class="objselect btn btn-xs {%if obj.name == objectives.myobj %}btn-success{%else%}btn-default{%endif%}">{{obj.name}}</button>
                     {% endfor %}
-                    <kbd class="ralign" id="reset">Reset ordering</kbd>
+                    </div>
+                    <button type="button" class="ralign btn btn-xs btn-default" id="reset">Reset ordering</button>
                 </div>
                 <div class="panel-body">
                     <table id="userlist" class="table table-hover table-condensed">

@@ -5,6 +5,7 @@ $(function () {
     //var href = "/table_data/"+location.search;
 	table = $("#userlist").DataTable({
 		ajax: table_href,
+        processing: true,
 		responsive: true,
 		autoWidth: false,
 		lengthMenu: [ 20, 40 ],
@@ -54,11 +55,15 @@ $(function () {
         return newArr;
     }
 
-
     $(document).on('click', '.objselect', function() {
         var id = $(this).attr('id');   
         var o = id.split('-');
-        table_href = "/table_data/?course="+coursename+'&task='+taskname+'&objective='+o[1]; 
+        var old = $('.btn-success');
+        old.removeClass('btn-success');
+        old.addClass('btn-default');
+        $(this).removeClass('btn-default');
+        $(this).addClass('btn-success');        
+        table_href = "/table_data/?course="+coursename+'&task='+taskname+'&objective='+o[1];         
         table.ajax.url(table_href).load();    
     });
 

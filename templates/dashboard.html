@@ -62,10 +62,14 @@
             <ul class="list-group">
                 <li class="list-group-item active">Objectives</li>
                 {% for course, val in objectives.items %}
-                <li class="list-group-item list-group-item-info">{{ course }}</li>
-                {% for obj in val.objs %}
-                <a href="#" id="{{obj.id}}" class="objselect list-group-item">{{ obj.name }}{% if obj.name == val.myobj %}<i class="ralign fa fa-check"></i>{% endif %}</a>
-                {% endfor %}
+                <a data-toggle="collapse" class="list-group-item list-group-item-info" href="#col_{{forloop.counter}}">{{ course }}</a>
+                <div id="col_{{forloop.counter}}" class="collapse">
+                    <ul class="list-group">
+                    {% for obj in val.objs %}
+                    <a href="#" id="{{obj.id}}" class="objselect list-group-item">{{ obj.name }}{% if obj.name == val.myobj %}<i class="ralign fa fa-check"></i>{% endif %}</a>
+                    {% endfor %}
+                    </ul>                    
+                </div>
                 {% endfor %}
             </ul>
         </div>
