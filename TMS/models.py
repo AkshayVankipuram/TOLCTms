@@ -3,6 +3,7 @@ from django.contrib.auth.models import User, Group
 from django.utils import dateparse, timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.contenttypes.fields import GenericForeignKey
+from statistics import variance
 
 class TMSUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -65,14 +66,31 @@ class TMSGroup(models.Model):
     completed = models.BooleanField(default=False)
     evaluated = models.BooleanField(default=False)
 
+    variance = models.FloatField(default=0.0)
+
     def __str__(self):
         return self.name
 
     def __unicode__(self):
         return self.name
 
-    def set_group_rep(self):
-        self.cumulative_rep = sum([u.reputation for u in self.members.all()])
+    def get_group_rep(self):
+        r = [u.reputation for u in self.members.all()]
+        return sum(r)/len(r)
+
+    def set_group_variance(self):
+        d = {}
+        task_skills = [sk.name for sk in self.task.skills.all()]
+        for u in self.members.all():
+            us = UserSkill.objects.filter(user=u).all()
+            for s in us:
+                if s.skill.name in task_skills:
+                    if s.skill.name not in d:
+                        d[s.skill.name] = []
+                    d[s.skill.name].append(s.level)
+        r = [variance(d[sd]) for sd in d]
+        self.variance = sum(r)/len(r)
+        self.save()
 
 class Skill(models.Model):
     name = models.CharField(max_length=15)
