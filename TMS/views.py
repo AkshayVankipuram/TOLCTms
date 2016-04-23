@@ -184,14 +184,14 @@ def table_data(request):
                         u.user.email] +
                         skill_vals + [
                         maprange((0.0, 100.0),(0.0, 5.0),u.reputation),
-                        get_skill_var(myskills, skill_vals)
+                        get_skill_var(myskills, user.reputation, skill_vals, u.reputation)
                      ])
 
     return JsonResponse(context)
 
-def get_skill_var(ms, os):
-    d = [os[i] - ms[i] for i in range(len(ms))]
-    return variance(d)
+def get_skill_var(ms, mre, os, ore):
+    d = [os[i] - ms[i] for i in range(len(ms))] + [1.5*(ore-mre)]
+    return round(sum(d)/len(d), 2)
 
 def get_skill_breakdown(request):
     u = models.TMSUser.objects.get(user=request.user)

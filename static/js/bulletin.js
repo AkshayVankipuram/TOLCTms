@@ -97,6 +97,10 @@ $(function () {
         }
     });
 
+    $('#reset').on('click', function() {
+        table.order([hidden, "desc"]).draw();
+    });
+
     $(document).on('click', '.remove i', function() {
         var id = $(this).parent().attr('id');
         $('.row_'+id).removeClass('bg-info');
@@ -128,7 +132,7 @@ $(function () {
         var v = d[0];
         if(currentUList.length == 4)
             return;
-        mapUV[v] = d.slice(2, d.length);
+        mapUV[v] = d.slice(2, hidden);
         currentUList.push(v);
         select.addClass('bg-info');
         select.addClass('row_'+v);

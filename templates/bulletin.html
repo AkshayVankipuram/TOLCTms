@@ -16,6 +16,10 @@
         overflow-y: auto;
     }
 
+    #reset {
+        cursor: pointer;
+    }
+
     #back {
         cursor: pointer;
         transition: transform .3s ease;
@@ -76,7 +80,7 @@
         </div>
         <div class="col-md-8">
             <div class="panel panel-primary">
-                <div class="panel-heading">Postings</div>
+                <div class="panel-heading">Postings<kbd class="ralign" id="reset">Reset ordering</kbd></div>
                 <div class="panel-body">
                     <table id="userlist" class="table table-hover table-condensed">
                         <thead>
