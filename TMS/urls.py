@@ -33,4 +33,5 @@ urlpatterns = [
     url(r'^save_event/$', views.save_event, name="save_event"),
     url(r'^update_event/$', views.update_event, name="update_event"),
     url(r'^create_group/$', views.create_group, name="create_group"),
+    url(r'^submit_feedback/$', views.submit_feedback, name="submit_feedback"),
 ]
