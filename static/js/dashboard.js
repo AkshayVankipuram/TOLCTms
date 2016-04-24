@@ -43,6 +43,7 @@ $(function() {
                 createModal(
                     $("<h3>").text("New Event"),
                     form.append("<p hidden id='eresid'>"+res.id+"</p>")
+                        .append("<p hidden id='ecowner'>"+res.course+"</p>")
                         .append("<p hidden id='estart'>"+start.toISOString()+"</p>")
                         .append("<p hidden id='eend'>"+end.toISOString()+"</p>")
                         .append($("<code>").text('Start: '+start.toString()))
@@ -104,16 +105,22 @@ $(function() {
                             ce.color = colorvalues.greens[3];
                             ce.completed = true;
                             calContainer.fullCalendar("updateEvent", ce);
-                            $('#goto').append($('<a>')
-                                .addClass('list-group-item list-group-item-success feedback')
-                                .html(ce.title + '<i class="ralign fa fa-comment"></i>')
-                                .attr('href', '/feedback/?task='+ce.title));
+                            if(ce.user_owner === '') {
+                                $('#goto').append($('<a>')
+                                    .addClass('list-group-item list-group-item-success feedback')
+                                    .html(ce.title + '<i class="ralign fa fa-comment"></i>')
+                                    .attr('href', '/feedback/?task='+ce.title));
+                            }
+                            $.getJSON('/update_event/?event='+ce.title);
                             $("#modalTmpl").modal("hide");
                         })
                 );
             }
         },
         eventRender: function(ce, js, v) {
+            if(ce.completed) {
+                ce.color = colorvalues.greens[3];
+            }
         },
         resourceLabelText: 'Courses',
         resourceAreaWidth: '15%',
@@ -162,14 +169,18 @@ $(function() {
             cs.push.apply(cs, newskills.split(','));
         }
 
-        calContainer.fullCalendar("renderEvent", {
+        var e = {
             title: $("#etitle").val(),
             skills: cs,
             description: $("#edesc").val(),
             resourceId: $("#eresid").text(),
             start: $("#estart").text(),
-            end: $("#eend").text()
-        }, true);
+            end: $("#eend").text(),
+            course_owner: $("#ecowner").text(),
+        };
+
+        calContainer.fullCalendar("renderEvent", e, true);
+        $.getJSON('/save_event/?event='+JSON.stringify(e));
         $("#modalTmpl").modal("hide");
     });
 

@@ -31,5 +31,6 @@ urlpatterns = [
     url(r'^get_skill_breakdown/', views.get_skill_breakdown, name="get_skill_breakdown"),
     url(r'^save_skills/', views.save_skills, name="save_skills"),
     url(r'^save_event/$', views.save_event, name="save_event"),
+    url(r'^update_event/$', views.update_event, name="update_event"),
     url(r'^create_group/$', views.create_group, name="create_group"),
 ]

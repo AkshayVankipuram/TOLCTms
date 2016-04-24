@@ -143,6 +143,8 @@ class Task(models.Model):
     course_owner = models.ForeignKey('Course', null=True, related_name="tasks")
     user_owner = models.ForeignKey('TMSUser', null=True, related_name="tasks")
 
+    completed = models.BooleanField(default=False)
+
     def __str__(self):
         return self.title
 
@@ -168,17 +170,18 @@ class Task(models.Model):
         self.start = Task.parse_time_str(start_str)
         self.end = Task.parse_time_str(end_str)
 
+
     def to_json(self, isoformat=True):
         if self.end < timezone.now():
             self.completed = True
             self.save()
 
+        course_owner = ''
+        user_owner = ''
         if self.course_owner is not None:
-            owner = self.course_owner.title
-        elif self.user_owner is not None:
-            owner = self.user_owner.get_username()
-        else:
-            owner = "None"
+            course_owner = self.course_owner.title
+        if self.user_owner is not None:
+            user_owner = self.user_owner.get_username()
 
         format_start = self.start.isoformat()
         format_end = self.end.isoformat()
@@ -192,8 +195,10 @@ class Task(models.Model):
             'description': self.description,
             'start': format_start,
             'end': format_end,
-            'owner': owner,
-            'skills': [s.name for s in self.skills.all()]
+            'course_owner': course_owner,
+            'user_owner': user_owner,
+            'skills': [s.name for s in self.skills.all()],
+            'completed': self.completed
         }
 
         return ret

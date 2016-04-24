@@ -106,7 +106,7 @@ def set_objective(request):
 def get_notifications(user):
     ret = []
     for course in user.courses.all():
-        for task in course.tasks.all():
+        for task in course.tasks.filter(user_owner=None).all():
             g = user.groups.filter(task=task).all()
             if not g:
                 t = task.to_json()
@@ -222,7 +222,7 @@ def get_skill_breakdown(request):
 
     context = {}
     for group in u.groups.all():
-        duration = (group.task.end - group.task.start).total_seconds() / 3600.0 / 4.0
+        duration = '02:00'
         context[group.task.title] = [{
             'title': skill.name,
             'description': '',
@@ -249,6 +249,17 @@ def event_stream(request):
                 'resourceId': 'group_task_'+group.name.replace(' ', '_').lower(),
                 })
             events.append(obj)
+            for member in group.members.all():
+                for task in member.tasks.filter(course_owner=course).all():
+                    rid = '{0}_{1}'.format(group.name.lower(), member.get_username()).replace(' ', '_')
+                    if member == u:
+                        rid = 'CU_' + rid
+                    obj = task.to_json()
+                    obj.update({
+                            'editable': (member.get_username() == u.get_username()),
+                            'resourceId': rid
+                        })
+                    events.append(obj)
     return JsonResponse(events, safe=False)
 
 def resource_stream(request):
@@ -264,7 +275,6 @@ def resource_stream(request):
                     'children': []
                 }
             for member in group.members.all():
-                editable = (member.get_username() == u.get_username())
                 id = '{0}_{1}'.format(group.name.lower(), member.get_username()).replace(' ', '_')
                 if member == u:
                     id = 'CU_' + id
@@ -272,7 +282,7 @@ def resource_stream(request):
                         'id': id,
                         'title': member.get_username().capitalize(),
                         'course': course.title,
-                        'editable': editable,
+                        'editable': (member.get_username() == u.get_username())
                     })
             resources.append(obj)
 
@@ -327,7 +337,38 @@ def save_skills(request):
 
 
 def save_event(request):
-    #j = json.loads(request.GET.get('event', '{}'))
+    j = json.loads(request.GET.get('event', '{}'))
+    
+    status = 'Fail'
+    if j != {}:
+        u = models.TMSUser.objects.get(user=request.user)
+        c = models.Course.objects.get(title=j['course_owner'])
+        t = models.Task()
+        t.title = j['title']
+        t.description = j['description']
+        t.set_date_times_iso(j['start'], j['end'])
+        t.user_owner = u
+        t.course_owner = c
+        t.save()
+
+        for skill in j['skills']:
+            if models.Skill.objects.filter(name=skill).exists():
+                t.skills.add(models.Skill.objects.get(name=skill))
+        t.save()
+
+        status = 'Pass'
+    
+    return JsonResponse({
+            'status': status
+        })
+
+def update_event(request):
+    e = request.GET.get('event', '')
+    if e != '':
+        t = models.Task.objects.get(title=e)
+        if t:
+            t.completed = True
+            t.save()
     return HttpResponse('OK')
 
 def get_relevant_tasks(user):
