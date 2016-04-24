@@ -9,7 +9,9 @@ from statistics import variance
 class TMSUser(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     reputation = models.FloatField(default=0.0)
+    numberofratings = models.PositiveIntegerField(default=1)
     colocate = models.BooleanField(default=False)
+
 
     skills = models.ManyToManyField('Skill', through="UserSkill", related_name="+")
 
