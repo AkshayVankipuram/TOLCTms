@@ -391,7 +391,7 @@ def submit_feedback(request):
     #context["skillScore"] = request.GET.get('skillScore');
     if(reputationScore != 'NA'):
         u = models.TMSUser.get_user(peer)
-        newReputation = (u.reputation * u.numberofratings) + (maprange([1,5], [0,100], int(reputationScore) )) / (u.numberofratings + 1)
+        newReputation =( (u.reputation * u.numberofratings) + (maprange([1,5], [0,100], float(reputationScore)) ))  / (u.numberofratings + 1)
         u.reputation = newReputation
         u.numberofratings += 1
         u.save()
