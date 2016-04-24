@@ -19,16 +19,22 @@ $(function() {
 		else
 		{
 			var currentPeer = $('#peerListDiv').find('.active')[0];
-			$("#notifications  li:eq(1)").before($("<li>")
-			.addClass("list-group-item list-group-item-success")
-			.text("Your evaluation for " + currentPeer.innerHTML +" (Reputation: "+$('#generalMetricScoreDiv').html()
-	        	+ " Skills: " + $('#taskMetricScoreDiv').html()+") has been recorded. Thank you."));
-			//alert("Your evaluation for " + currentPeer.innerHTML+" has been recorded. Thank you.");
-			currentPeer.remove();
-			resetForm();
-			
-			if($('#peerListDiv').find('a').length == 0)
-				window.location.href = '/home'
+			$.ajax
+			({
+            			url: '/submit_feedback/',
+            			type: 'get',
+            			data: { peer: currentPeer.innerHTML, reputationScore: $('#generalMetricScoreDiv').html(), skillScore: $('#taskMetricScoreDiv').html() },
+            			success: function(response){
+            			$("#notifications  li:eq(1)").before($("<li>")
+					.addClass("list-group-item list-group-item-success")
+					.text("Your evaluation for " + currentPeer.innerHTML +" (Reputation: "+$('#generalMetricScoreDiv').html()
+	        			+ " Skills: " + $('#taskMetricScoreDiv').html()+") has been recorded. Thank you."));
+            			currentPeer.remove();
+				resetForm();
+				if($('#peerListDiv').find('a').length == 0)
+					window.location.href = '/home'
+    				}
+        		});
 		}
     });
 	
