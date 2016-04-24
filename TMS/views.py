@@ -384,3 +384,15 @@ def get_tasks_by_title(user):
         ret.extend([t['title'] for t in u.get_tasks(True)])
     return ret
 
+def submit_feedback(request):
+    context = {};
+    peer = request.GET.get('peer','');
+    reputationScore = request.GET.get('reputationScore');
+    #context["skillScore"] = request.GET.get('skillScore');
+    if(reputationScore != 'NA'):
+        u = models.TMSUser.get_user(peer)
+        newReputation = (u.reputation * u.numberofratings) + (maprange([1,5], [0,100], int(reputationScore) )) / (u.numberofratings + 1)
+        u.reputation = newReputation
+        u.numberofratings += 1
+        u.save()
+    return JsonResponse({})
