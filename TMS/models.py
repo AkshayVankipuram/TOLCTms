@@ -174,7 +174,7 @@ class Task(models.Model):
 
 
     def to_json(self, isoformat=True):
-        if self.end < timezone.now():
+        if self.end < timezone.now() and self.user_owner == None:
             self.completed = True
             self.save()
 
