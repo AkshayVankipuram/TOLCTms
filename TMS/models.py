@@ -196,7 +196,6 @@ class Task(models.Model):
             'course_owner': course_owner,
             'user_owner': user_owner,
             'skills': [s.name for s in self.skills.all()],
-            'completed': self.completed
         }
 
         return ret

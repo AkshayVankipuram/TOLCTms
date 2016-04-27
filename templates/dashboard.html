@@ -53,10 +53,13 @@
         <div class="col-md-2">
             <ul class="list-group" id="goto">
                 <li class="list-group-item active">Links</li>
-                {% for n in notifications %}
+                {% for n in notifications.to_begin %}
                 <a href="/bulletin/?course={{n.course_owner}}&task={{n.title}}" class="list-group-item list-group-item-warning notify">
                    <i class="fa fa-users"></i>&nbsp;{{n.title}}<kbd class="ralign">{{n.course_abbr}}</kbd>
                 </a>
+                {% endfor %}
+                {% for n in notifications.completed %}
+                <a href="/feedback/?task={{n}}" class="list-group-item list-group-item-success">{{n}}<i class="ralign fa fa-comment"></i></a>
                 {% endfor %}
             </ul>
             <ul class="list-group">

@@ -104,7 +104,7 @@ def set_objective(request):
                 'status': False
             })
 def get_notifications(user):
-    ret = []
+    ret = { 'to_begin': [], 'completed': [] }
     for course in user.courses.all():
         for task in course.tasks.filter(user_owner=None).all():
             g = user.groups.filter(task=task).all()
@@ -112,7 +112,9 @@ def get_notifications(user):
                 t = task.to_json()
                 abbr = [w[0].upper() for w in course.title.split(' ')]
                 t['course_abbr'] = ''.join(abbr[:2])
-                ret.append(t)
+                ret['to_begin'].append(t)
+            elif g and g[0].completed:
+                ret['completed'].append(g[0].task.title)
     return ret
 
 def bulletin(request):
@@ -247,6 +249,7 @@ def event_stream(request):
                 'ctitle': group.name,
                 'editable': False,
                 'resourceId': 'group_task_'+group.name.replace(' ', '_').lower(),
+                'completed': group.completed
                 })
             events.append(obj)
             for member in group.members.all():
@@ -257,7 +260,8 @@ def event_stream(request):
                     obj = task.to_json()
                     obj.update({
                             'editable': (member.get_username() == u.get_username()),
-                            'resourceId': rid
+                            'resourceId': rid,
+                            'completed': task.completed
                         })
                     events.append(obj)
     return JsonResponse(events, safe=False)
@@ -363,12 +367,18 @@ def save_event(request):
         })
 
 def update_event(request):
+    u = models.TMSUser.objects.get(user=request.user)
     e = request.GET.get('event', '')
     if e != '':
         t = models.Task.objects.get(title=e)
-        if t:
-            t.completed = True
-            t.save()
+        if t.user_owner != None:
+           t.completed = True
+           t.save()
+        else: 
+            g = u.groups.filter(task=t).all()
+            if g:
+               g[0].completed = True
+               g[0].save()
     return HttpResponse('OK')
 
 def get_relevant_tasks(user):
