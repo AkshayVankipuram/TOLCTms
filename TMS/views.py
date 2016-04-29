@@ -253,7 +253,7 @@ def event_stream(request):
                 })
             events.append(obj)
             for member in group.members.all():
-                for task in member.tasks.filter(course_owner=course).all():
+                for task in member.tasks.filter(course_owner=course).exclude(title=group.task.title).all():
                     rid = '{0}_{1}'.format(group.name.lower(), member.get_username()).replace(' ', '_')
                     if member == u:
                         rid = 'CU_' + rid

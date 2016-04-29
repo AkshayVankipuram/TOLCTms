@@ -13,7 +13,15 @@ $ python manage.py runserver
 
 **Launch *http://localhost:8000* in the browser**
 
-Login with 'akshay' and 'akshaypass'
+Logins available (subset)
+```
+User		Pass
+akshay		akshaypass
+harshal		harshalpass
+bhargavi	bhargavipass
+ajith		ajithpass
+```
+The database has 1003 users. So for more logins you can use any of the user names (lower case) with 'pass' appended for the password.
 
 **In case you are unable to login**
 
