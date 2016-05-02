@@ -1,39 +1,27 @@
-# TMSPrj
-**A time management system for MOOC**
+# TMSPrj #
+## A collaborative time management system for MOOCs ##
 
-**Install django globally (may require sudo permissions)**
+## Installation ##
+### 1. Install django globally (requires root permissions on Linux) ###
 ```
 $ pip install django
 ```
-
-**Run manage.py**
+### 2. Run manage.py ###
 ```
 $ python manage.py runserver
 ```
+### 3. Launch http://localhost:8000 in the browser ###
 
-**Launch *http://localhost:8000* in the browser**
+## or ##
+### Ignore the installation steps and goto http://54.86.86.30:8080 ###
 
-Logins available (subset)
-```
-User		Pass
-akshay		akshaypass
-harshal		harshalpass
-bhargavi	bhargavipass
-ajith		ajithpass
-```
-The database has 1003 users. So for more logins you can use any of the user names (lower case) with 'pass' appended for the password.
+## Usage ##
+### Subset of logins available ###
+| Username  | Password |
+|-----------|----------|
+akshay    	| akshaypass 
+harshal		| harshalpass
+bhargavi	| bhargavipass
+ajith		| ajithpass
+***The database has 1003 users. So for more logins you can use any of the user names (lower case) with 'pass' appended for the password.***
 
-**In case you are unable to login**
-
-**Run django shell**
-```
-$ python manage.py runserver
-```
-
-**Managing Databases**
-
-If you make any changes to TMS/models.py run the following before continuing 
-```
-$ python manage.py makemigrations TMS
-$ python manage.py migrate
-```
