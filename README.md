@@ -53,4 +53,8 @@ aja         | ajapass
 **Peer Feedback**
  1. For each member of your group please click on the ratings to give them their feedback scores. Hit submit when done. When the final group member has been reviewed the view will revert to the dashboard view.
 
- #### NOTE: We have included a video of usage of the app. In it we did not create a new group or complete the feedback since we wanted you to have the option if you chose my username but you can do both those things. There is also a video of an explanation in Piazza. The video we've added to the repo is under the videos folder and it was created using Camtasia. Since it was a free trial there is gigantic watermark on the video but we felt it serves its purpose. ####
+** Known Limitations **
+ 1. When creating a new task, upon clicking submit, the resultant task on the calender is somtimes pushed by a few hours. This seems to be because of some time format conversion issues between Django and FullCalendar.
+ 2. The suggested task events can be dragged onto any user. We haven't been able to restrict that.  
+
+ ** NOTE: We have included a video of usage of the app. In it we did not create a new group or complete the feedback since we wanted you to have the option if you chose my username but you can do both those things. There is also a video of an explanation in Piazza. The video we've added to the repo is under the videos folder and it was created using Camtasia. Since it was a free trial there is gigantic watermark on the video but we felt it serves its purpose. **
