@@ -12,9 +12,6 @@ $ python manage.py runserver
 ```
 #### 3. Launch http://localhost:8000 in the browser ####
 
-### or ###
-#### Ignore the installation steps and goto http://54.86.86.30:8080 ####
-
 ### Usage ###
 #### Subset of logins available ####
 | Username  | Password |
