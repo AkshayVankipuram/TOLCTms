@@ -23,7 +23,7 @@ ajith		| ajithpass
 brock       | brockpass
 aja         | ajapass
 ***The database has 1003 users. So for more logins you can use any of the user names (lower case) with 'pass' appended for the password.***
-#### The succeeding sections explain usage as a logical flow. This is the simplest path to using all the features available. ####
+#### The following sections explain usage as a logical flow. This is the simplest path to using all the features available. ####
 
 **Login to Dashboard View**
  1. Interact with the tasks on the calendar by clicking on them.
